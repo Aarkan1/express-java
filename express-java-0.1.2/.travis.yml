@@ -1,0 +1,6 @@
+install: gradle wrapper --gradle-version 5.4.1
+
+language: java
+
+jdk:
+  - openjdk11
