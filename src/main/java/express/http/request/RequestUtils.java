@@ -1,8 +1,12 @@
 package express.http.request;
 
+import com.google.gson.Gson;
 import com.sun.net.httpserver.Headers;
 import express.http.Cookie;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
@@ -105,4 +109,23 @@ final class RequestUtils {
         return querys;
     }
 
+    public static Object convertBodyToObject(InputStream is) {
+        String body = convertBodyToJson(is);
+        return new Gson().fromJson(body, Object.class);
+    }
+
+    public static String convertBodyToJson(InputStream is) {
+        try {
+            ByteArrayOutputStream result = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = is.read(buffer)) != -1) {
+                result.write(buffer, 0, length);
+            }
+            return result.toString("UTF-8");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
