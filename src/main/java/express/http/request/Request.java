@@ -98,7 +98,7 @@ public class Request {
      * @return The request body as Object
      */
     public Object getBody() {
-        return RequestUtils.convertBodyToJson(body);
+        return RequestUtils.convertBodyToObject(body);
     }
 
     /**
