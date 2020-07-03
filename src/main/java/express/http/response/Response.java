@@ -1,5 +1,6 @@
 package express.http.response;
 
+import com.google.gson.Gson;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import express.http.Cookie;
@@ -32,6 +33,7 @@ public class Response {
     private boolean isClose;
     private long contentLength;
     private int status;
+    private Gson gson = new Gson();
 
     {
         // Initialize with default data
@@ -156,6 +158,15 @@ public class Response {
         this.contentLength = 0;
         sendHeaders();
         close();
+    }
+
+    /**
+     * Stringify an object to send
+     *
+     * @param object The object
+     */
+    public void json(Object object) {
+        send(gson.toJson(object));
     }
 
     /**
