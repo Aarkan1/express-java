@@ -90,15 +90,15 @@ public class Request {
     /**
      * @return The request body as InputStream
      */
-    public InputStream getBodyStream() {
+    public InputStream getBody() {
         return body;
     }
 
     /**
      * @return The request body as Object
      */
-    public Object getBody() {
-        return RequestUtils.convertBodyToObject(body);
+    public Object getBody(Class klass) {
+        return RequestUtils.convertBodyToObject(body, klass);
     }
 
     /**

@@ -109,9 +109,9 @@ final class RequestUtils {
         return querys;
     }
 
-    public static Object convertBodyToObject(InputStream is) {
+    public static Object convertBodyToObject(InputStream is, Class klass) {
         String body = convertBodyToJson(is);
-        return new Gson().fromJson(body, Object.class);
+        return new Gson().fromJson(body, klass);
     }
 
     public static String convertBodyToJson(InputStream is) {
