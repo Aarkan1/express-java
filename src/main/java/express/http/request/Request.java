@@ -95,7 +95,7 @@ public class Request {
     }
 
     /**
-     * @return The request body as Object
+     * @return The request body as Object of target class
      */
     public Object getBody(Class klass) {
         return RequestUtils.convertBodyToObject(body, klass);

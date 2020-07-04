@@ -109,11 +109,23 @@ final class RequestUtils {
         return querys;
     }
 
+    /**
+     * Converts the body stream to target class
+     *
+     * @param is
+     * @param klass
+     * @return converted stream as an Object
+     */
     public static Object convertBodyToObject(InputStream is, Class klass) {
         String body = convertBodyToJson(is);
         return new Gson().fromJson(body, klass);
     }
 
+    /**
+     *
+     * @param is
+     * @return Stringified stream
+     */
     public static String convertBodyToJson(InputStream is) {
         try {
             ByteArrayOutputStream result = new ByteArrayOutputStream();

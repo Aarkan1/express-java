@@ -56,9 +56,9 @@ app.get("/", (req, res) -> {
 > Add dependency:
 ```xml
 <dependency>
-    <groupId>com.github.Simonwep</groupId>
-    <artifactId>java-express</artifactId>
-    <version>0.1.1</version>
+    <groupId>com.github.Aarkan1</groupId>
+    <artifactId>express-java</artifactId>
+    <version>0.2.0</version>
 </dependency>
 ```
 
@@ -70,15 +70,15 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.Simonwep:java-express:0.1.1'
+    implementation 'com.github.Aarkan1:express-java:0.2.0'
 }
 ```
 
 ## Docs:
 * [Routing](#routing)
-   * [DynExpress](#dynexpress)
    * [Direct](#direct)
    * [With Router](#with-router)
+   * [DynExpress](#dynexpress)
 * [URL Basics](#url-basics)
    * [URL Parameter](#url-parameter)
    * [URL Parameter Listener](#url-parameter-listener)
@@ -95,52 +95,6 @@ dependencies {
 * [Examples](#examples)
 
 ## Routing
-### DynExpress
-Express allows the attaching of request-handler to instance methods via the DynExpress annotation:
-```java
-
-// Your main class
-import express.Express;
-public class Main {
-    public static void main(String[] args) {
-        Express app = new Express();
-        app.bind(new Bindings()); // See class below
-        app.listen();
-    }
-}
-
-// Your class with request handlers
-import express.DynExpress;
-import express.http.RequestMethod;
-import express.http.request.Request;
-import express.http.response.Response;
-public class Bindings {
-
-    @DynExpress() // Default is context="/" and method=RequestMethod.GET
-    public void getIndex(Request req, Response res) {
-        res.send("Hello World!");
-    }
-
-    @DynExpress(context = "/about") // Only context is defined, method=RequestMethod.GET is used as method
-    public void getAbout(Request req, Response res) {
-        res.send("About page");
-    }
-
-    @DynExpress(context = "/impressum", method = RequestMethod.PATCH) // Both defined
-    public void getImpressum(Request req, Response res) {
-        res.send("Impressum page was patched");
-    }
-
-    @DynExpress(method = RequestMethod.POST) // Only the method is defined, "/" is used as context
-    public void postIndex(Request req, Response res) {
-        res.send("POST to index");
-    }
-}
-
-
-```
-
-
 ### Direct
 You can add routes (And middlewares) directly to the Express object to handle requests:
 ```java
@@ -198,6 +152,51 @@ Express app = new Express() {{
   // Start server
   listen();
 }};
+```
+
+### DynExpress
+Express allows the attaching of request-handler to instance methods via the DynExpress annotation:
+```java
+
+// Your main class
+import express.Express;
+public class Main {
+    public static void main(String[] args) {
+        Express app = new Express();
+        app.bind(new Bindings()); // See class below
+        app.listen();
+    }
+}
+
+// Your class with request handlers
+import express.DynExpress;
+import express.http.RequestMethod;
+import express.http.request.Request;
+import express.http.response.Response;
+public class Bindings {
+
+    @DynExpress() // Default is context="/" and method=RequestMethod.GET
+    public void getIndex(Request req, Response res) {
+        res.send("Hello World!");
+    }
+
+    @DynExpress(context = "/about") // Only context is defined, method=RequestMethod.GET is used as method
+    public void getAbout(Request req, Response res) {
+        res.send("About page");
+    }
+
+    @DynExpress(context = "/impressum", method = RequestMethod.PATCH) // Both defined
+    public void getImpressum(Request req, Response res) {
+        res.send("Impressum page was patched");
+    }
+
+    @DynExpress(method = RequestMethod.POST) // Only the method is defined, "/" is used as context
+    public void postIndex(Request req, Response res) {
+        res.send("POST to index");
+    }
+}
+
+
 ```
 
 ## URL Basics
@@ -344,6 +343,7 @@ res.send(String str);                  // Send a string as response
 res.send(Path path);                   // Send a file as response
 res.send(byte[] bytes)                 // Send bytes as response
 res.send();                            // Send empty response
+res.json(Object object);               // Send object as JSON response
 res.redirect(String location);         // Redirect the request to another url
 res.setCookie(Cookie cookie);          // Add an cookie to the response
 res.sendStatus(Status status);         // Set the response status and send an empty response
@@ -388,6 +388,7 @@ req.hasAuthorization();           // Check if the request has an authorization
 req.pipe(OutputStream stream, int buffersize); // Pipe the request body to an outputstream
 req.pipe(Path path, int buffersize);           // Pipe the request body to an file
 req.getBody();                    // Returns the request inputstream
+req.getBody(Class klass);         // Returns the request object as target class
 ```
 
 # Middleware
