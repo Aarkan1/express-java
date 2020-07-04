@@ -1,38 +1,4 @@
 
-<h1 align="center">
-	<img alt="Logo" src="https://image.ibb.co/jyxDzx/java_express.png">
-</h1>
-
-<h3 align="center">
-	Simple and fast HTTP-Framework with the touch of expressjs
-</h3>
-
-<p align="center">
-	<a href="https://choosealicense.com/licenses/mit/"><img
-		alt="License MIT"
-		src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
-	<a href="https://docs.oracle.com/javase/8/"><img
-		alt="Current version"
-		src="https://img.shields.io/badge/version-1.0.0-EB4D5C.svg"></a>
-    <a href="https://www.patreon.com/simonwep"><img
-        alt="Support me"
-        src="https://img.shields.io/badge/patreon-support-DF2D41.svg"></a>
-	<a href="https://gradle.org/"><img
-		alt="Build with gradle"
-		src="https://img.shields.io/badge/build%20with-gradle-006533.svg"></a>
-	<a href="https://travis-ci.org/Simonwep/java-express"><img
-		alt="Build Status"
-		src="https://travis-ci.org/Simonwep/java-express.svg?branch=master"></a>
-</p>
-
-<br>
-
-<h3 align="center">
-	!! This project is looking for a new maintainer! Please comment <a href="https://github.com/Simonwep/java-express/issues/13">here</a> if you're interested !!
-</h3>
-
-<br>
-
 #### Getting Started
 ```java
 Express app = new Express();
