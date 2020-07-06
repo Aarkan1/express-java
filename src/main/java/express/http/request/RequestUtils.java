@@ -1,6 +1,6 @@
 package express.http.request;
 
-import com.google.gson.Gson;
+import com.jsoniter.JsonIterator;
 import com.sun.net.httpserver.Headers;
 import express.http.Cookie;
 
@@ -118,7 +118,7 @@ final class RequestUtils {
      */
     public static Object convertBodyToObject(InputStream is, Class klass) {
         String body = convertBodyToJson(is);
-        return new Gson().fromJson(body, klass);
+        return JsonIterator.deserialize(body, klass);
     }
 
     /**

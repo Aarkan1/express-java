@@ -24,7 +24,7 @@ app.get("/", (req, res) -> {
 <dependency>
     <groupId>com.github.Aarkan1</groupId>
     <artifactId>express-java</artifactId>
-    <version>a1d4abd</version>
+    <version>0.2.3</version>
 </dependency>
 ```
 
@@ -36,7 +36,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.Aarkan1:express-java:a1d4abd'
+    implementation 'com.github.Aarkan1:express-java:0.2.3'
 }
 ```
 
