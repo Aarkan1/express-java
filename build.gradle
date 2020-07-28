@@ -13,4 +13,5 @@ repositories {
 
 dependencies {
     compile 'com.jsoniter:jsoniter:0.9.19'
+    compile 'commons-fileupload:commons-fileupload:1.4'
 }

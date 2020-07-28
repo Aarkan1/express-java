@@ -24,7 +24,7 @@ app.get("/", (req, res) -> {
 <dependency>
     <groupId>com.github.Aarkan1</groupId>
     <artifactId>express-java</artifactId>
-    <version>0.2.3</version>
+    <version>0.3.0</version>
 </dependency>
 ```
 
@@ -36,7 +36,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.Aarkan1:express-java:0.2.3'
+    implementation 'com.github.Aarkan1:express-java:0.3.0'
 }
 ```
 
@@ -51,6 +51,7 @@ dependencies {
    * [URL Querys](#url-querys)
    * [Cookies](#cookies)
    * [Form Data](#form-data)
+   * [FileItem Object](#fileitem-object)
 * [HTTP Relevant classes](#http-relevant-classes)
    * [Response Object](#response-object)
    * [Request Object](#request-object)
@@ -240,6 +241,54 @@ app.get("/showcookie", (req, res) -> {
 ```
 
 ### Form data
+Over `req.getFormData(NAME)` you receive a list of FileItems from the posted FormData.
+`req.getFormData()` without param returns a Map, where key is the field name and value the list of FileItems.
+Example JavaScript:
+```js
+let files = document.querySelector('input[type=file]').files;
+let formData = new FormData();
+
+for(let file of files) {
+   formData.append('files', file, file.name);
+}
+   
+formData.append('greeting', 'Hello, awesome server!');
+
+fetch('/api/file-upload', {
+   method: 'POST',
+   body: formData
+});
+```
+
+Form data gets stored in lists. If a file is appended we get the byte[] array from the fileItem.get(). You can use this byte[] array to save the file to an uploads-folder. 
+```java
+app.post("/api/file-upload", (req, res) -> {
+  List<FileItem> files = req.getFormData("files");
+  String greeting = req.getFormData("greeting").get(0).getString();
+
+  String filename = files.get(0).getName();
+  byte[] profilePic = files.get(0).get();
+  // Process data, save files to disk
+
+  // Prints "Greeting: Hello, awesome server!, Filename: profile-picture.png"
+  res.send("Greeting: " + greeting + ", Filename: " + filename);
+});
+```
+
+### FileItem Object
+From `req.getFormData(NAME)` you get a list of FileItems. Here are some commonly used methods.
+```java
+fileItem.get();                  // Returns the file byte[] array
+fileItem.getName();              // Returns the file name
+fileItem.getString();            // Returns the form data value as String, default charset = UTF_8
+fileItem.getString(String encoding); // Returns the form data value as String with provided encoding
+fileItem.getContentType();       // Returns the content type
+fileItem.getFieldName();         // Returns the form data field name
+fileItem.getInputStream();       // Returns the file inputstream
+fileItem.getOutputStream();      // Returns the file outputstream
+fileItem.getSize();              // Returns the form data size
+```
+
 Over `req.getFormQuery(NAME)` you receive the values from the input elements of an HTML-Form.
 Example HTML-Form:
 ```html
@@ -249,7 +298,8 @@ Example HTML-Form:
    <input description="submit">
 </form>
 ```
-**Attention: Currently, File-inputs don't work, if there is an File-input the data won't get parsed!**
+**Attention: Currently, File-inputs don't work in forms, if there is an File-input the data won't get parsed!**
+**To upload files you need to add them to FormData in the frontend!**
 Now description, for the example below, `john` in username and `john@gmail.com` in the email field.
 Java code to handle the post request and access the form elements:
 ```java
@@ -294,7 +344,7 @@ app.stop();                                                     // Stop the serv
 ```
 
 ### Response Object
-Over the response object, you have serveral possibility like setting cookies, send an file and more. Below is an short explanation what methods exists:
+Over the `Response` object, you have several possibility like setting cookies, send an file and more. Below is an short explanation what methods exists:
 (We assume that `res` is the `Response` object)
 
 ```java
@@ -320,7 +370,7 @@ res.streamFrom(long contentLength, InputStream is, MediaType mediaType) // Send 
 The response object calls are comments because **you can only call the .send(xy) once each request!**
 
 ### Request Object
-Over the `Request` Object you have access to serveral request stuff (We assume that `req` is the `Request` object):
+Over the `Request` object you have access to several request stuff (We assume that `req` is the `Request` object):
 
 ```java
 req.getAddress();                 // Returns the INET-Adress from the client
@@ -332,6 +382,8 @@ req.getHost();                    // Returns the request host
 req.getContentLength();           // Returns the content length
 req.getContentType();             // Returns the content type
 req.getMiddlewareContent(String name); // Returns the content from an middleware by name
+req.getFormData();                // Returns all form datas
+req.getFormData(String name);     // Returns all form data from the form field by name
 req.getFormQuerys();              // Returns all form querys
 req.getParams();                  // Returns all params
 req.getQuerys();                  // Returns all querys
@@ -353,7 +405,8 @@ req.getAuthorization();           // Returns the request authorization
 req.hasAuthorization();           // Check if the request has an authorization
 req.pipe(OutputStream stream, int buffersize); // Pipe the request body to an outputstream
 req.pipe(Path path, int buffersize);           // Pipe the request body to an file
-req.getBody();                    // Returns the request inputstream
+req.getBody();                    // Returns the request as a Map<String, String>
+req.getBodyStream();              // Returns the request inputstream
 req.getBody(Class klass);         // Returns the request object as target class
 ```
 

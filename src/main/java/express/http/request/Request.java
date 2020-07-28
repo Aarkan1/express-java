@@ -7,6 +7,8 @@ import express.Express;
 import express.filter.Filter;
 import express.http.Cookie;
 import express.utils.Utils;
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,10 +20,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Simon Reinisch
@@ -46,7 +46,8 @@ public class Request {
     private final HashMap<String, Object> middleware;   // Middleware Data
     private final HashMap<String, Cookie> cookies;      // Request cookies
     private final HashMap<String, String> queries;      // URL Query parameters
-    private final HashMap<String, String> formQueries; // Form query parameters (application/x-www-form-urlencoded)
+    private final HashMap<String, String> formQueries;  // Form query parameters (application/x-www-form-urlencoded)
+    private Map<String, List<FileItem>> formData;       // Form Data (multipart/form-data)
 
     private HashMap<String, String> params;             // URL Params, would be added in ExpressFilterImpl
     private String context;                             // Context which matched
@@ -82,6 +83,15 @@ public class Request {
                 ? RequestUtils.parseRawQuery(Utils.streamToString(body))
                 : new HashMap<>();
 
+        // Check if the request contains multipart/form-data
+            try {
+                formData = contentType.startsWith("multipart/form-data")
+                        ? MultipartParser.parseRequest(body.readAllBytes(), contentType)
+                        : new HashMap<>();
+            } catch (FileUploadException | IOException e) {
+                formData = new HashMap<>();
+            }
+
         // Parse query and cookies, both returns not null if there is nothing
         this.queries = RequestUtils.parseRawQuery(exchange.getRequestURI().getRawQuery());
         this.cookies = RequestUtils.parseCookies(headers);
@@ -90,8 +100,15 @@ public class Request {
     /**
      * @return The request body as InputStream
      */
-    public InputStream getBody() {
+    public InputStream getBodyStream() {
         return body;
+    }
+
+    /**
+     * @return The request body as a Map of key values
+     */
+    public Map getBody() {
+        return (Map) getBody(Map.class);
     }
 
     /**
@@ -437,6 +454,21 @@ public class Request {
      */
     public Express getApp() {
         return express;
+    }
+
+    /**
+     * @return Map<FormData entry, List of appended items>
+     */
+    public Map<String, List<FileItem>> getFormData() throws IOException, FileUploadException {
+        return formData;
+    }
+
+    /**
+     * @param name The FormData entry
+     * @return List of FileItems from the FormData with provided key
+     */
+    public List<FileItem> getFormData(String name) throws IOException, FileUploadException {
+        return formData.get(name);
     }
 
 }
