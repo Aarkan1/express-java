@@ -1,6 +1,7 @@
 package express.http.response;
 
-import com.jsoniter.output.JsonStream;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import express.http.Cookie;
@@ -34,6 +35,8 @@ public class Response {
     private long contentLength;
     private int status;
 
+    private final ObjectMapper objectMapper;
+
     {
         // Initialize with default data
         this.contentType = MediaType._txt.getMIME();
@@ -42,6 +45,7 @@ public class Response {
         this.status = 200;
         this.logger = Logger.getLogger(getClass().getSimpleName());
         this.logger.setUseParentHandlers(false); // Disable default console log
+        this.objectMapper = new ObjectMapper();
     }
 
     public Response(HttpExchange exchange) {
@@ -165,7 +169,11 @@ public class Response {
      * @param object The object
      */
     public void json(Object object) {
-        send(JsonStream.serialize(object));
+        try {
+            send(objectMapper.writeValueAsString(object));
+        } catch (JsonProcessingException e) {
+            send("error: " + e.getMessage());
+        }
     }
 
     /**

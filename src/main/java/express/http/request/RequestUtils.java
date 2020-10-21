@@ -120,33 +120,12 @@ final class RequestUtils {
      * @return converted stream as an Object
      */
     public static Object convertBodyToObject(InputStream is, Class klass) {
-        String body = convertBodyToJson(is);
         try {
-            return objectMapper.readValue(body, klass);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    /**
-     *
-     * @param is
-     * @return Stringified stream
-     */
-    public static String convertBodyToJson(InputStream is) {
-        try {
-            ByteArrayOutputStream result = new ByteArrayOutputStream();
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = is.read(buffer)) != -1) {
-                result.write(buffer, 0, length);
-            }
-            return result.toString("UTF-8");
+            return objectMapper.readValue(is, klass);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         return null;
     }
 }
