@@ -5,7 +5,9 @@ Express app = new Express();
 
 app.get("/", (req, res) -> {
    res.send("Hello World");
-}).listen(); // Will listen on port 80 which is set as default
+})
+
+app.listen(); // Will listen on port 80 which is set as default
 ```
 
 ## Installation
@@ -23,8 +25,8 @@ app.get("/", (req, res) -> {
 ```xml
 <dependency>
     <groupId>com.github.Aarkan1</groupId>
-    <artifactId>express-java</artifactId>
-    <version>0.3.0</version>
+    <artifactId>java-express</artifactId>
+    <version>0.3.1</version>
 </dependency>
 ```
 
@@ -36,7 +38,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.Aarkan1:express-java:0.3.0'
+    implementation 'com.github.Aarkan1:java-express:0.3.1'
 }
 ```
 
