@@ -1,6 +1,7 @@
 package express.http.request;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.Headers;
 import express.http.Cookie;
 
@@ -14,7 +15,7 @@ import java.util.List;
 
 final class RequestUtils {
 
-    private static Gson gson = new Gson();
+    private static ObjectMapper objectMapper = new ObjectMapper();
 
     private RequestUtils() {}
 
@@ -120,7 +121,13 @@ final class RequestUtils {
      */
     public static Object convertBodyToObject(InputStream is, Class klass) {
         String body = convertBodyToJson(is);
-        return gson.fromJson(body, klass);
+        try {
+            return objectMapper.readValue(body, klass);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     /**
