@@ -12,6 +12,13 @@ app.listen(); // Will listen on port 80 which is set as default
 
 ## Installation
 
+### Download
+> Direct download as jar: 
+[Latest version(0.3.4)](https://github.com/Aarkan1/java-express/raw/master/build/express-java-v0.3.4.jar)
+
+> Old version:
+[Older versions](https://github.com/Aarkan1/java-express/tree/master/build)
+
 ### Maven
 > Add repository:
 ```xml
