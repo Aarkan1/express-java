@@ -26,7 +26,7 @@ app.listen(); // Will listen on port 80 which is set as default
 <dependency>
     <groupId>com.github.Aarkan1</groupId>
     <artifactId>java-express</artifactId>
-    <version>0.3.2</version>
+    <version>0.3.3</version>
 </dependency>
 ```
 
@@ -38,7 +38,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.Aarkan1:java-express:0.3.2'
+    implementation 'com.github.Aarkan1:java-express:0.3.3'
 }
 ```
 
