@@ -15,11 +15,11 @@ app.listen(); // Will listen on port 80 which is set as default
 ### Download
 > Direct download as jar: 
 
-[Latest version(0.3.4)](https://github.com/Aarkan1/java-express/raw/master/build/express-java-v0.3.4.jar)
+[Latest java-express-0.3.5.jar](https://github.com/Aarkan1/java-express/raw/master/releases/java-express-0.3.5.jar)
 
 > Old version:
 
-[Older versions](https://github.com/Aarkan1/java-express/tree/master/build)
+[Older versions](https://github.com/Aarkan1/java-express/tree/master/releases)
 
 ### Maven
 > Add repository:
@@ -35,7 +35,7 @@ app.listen(); // Will listen on port 80 which is set as default
 <dependency>
     <groupId>com.github.Aarkan1</groupId>
     <artifactId>java-express</artifactId>
-    <version>0.3.4</version>
+    <version>0.3.5</version>
 </dependency>
 ```
 
@@ -47,15 +47,13 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.Aarkan1:java-express:0.3.4'
+    implementation 'com.github.Aarkan1:java-express:0.3.5'
 }
 ```
 
 ## Docs:
 * [Routing](#routing)
    * [Direct](#direct)
-   * [With Router](#with-router)
-   * [DynExpress](#dynexpress)
 * [URL Basics](#url-basics)
    * [URL Parameter](#url-parameter)
    * [URL Parameter Listener](#url-parameter-listener)
@@ -71,6 +69,9 @@ dependencies {
 * [Using global variables](#global-variables)
 * [License](#license)
 * [Examples](#examples)
+* [Router code splitting](#router-code-splitting)
+   * [With Router](#with-router)
+   * [DynExpress](#dynexpress)
 
 ## Routing
 ### Direct
@@ -103,78 +104,6 @@ app.put("/user", (req, res) -> res.send("Add an user!"));
 app.on("/user", "CONNECT", (req, res) -> res.send("Connect!"));
 
 app.listen();
-```
-
-### With Router
-But it's better to split your code, right? With the `ExpressRouter` you can create routes and add it later to the `Express` object:
-```java
-Express app = new Express() {{
-
-  // Define root greeting
-  get("/", (req, res) -> res.send("Hello World!"));
-
-  // Define home routes
-  use("/home", new ExpressRouter(){{
-    get("/about", (req, res) -> res.send("About page"));
-    get("/impressum", (req, res) -> res.send("Impressum page"));
-    get("/sponsors", (req, res) -> res.send("Sponsors page"));
-  }});
-
-  // Define root routes
-  use("/", new ExpressRouter(){{
-    get("/login", (req, res) -> res.send("Login page"));
-    get("/register", (req, res) -> res.send("Register page"));
-    get("/contact", (req, res) -> res.send("Contact page"));
-  }});
-
-  // Start server
-  listen();
-}};
-```
-
-### DynExpress
-Express allows the attaching of request-handler to instance methods via the DynExpress annotation:
-```java
-
-// Your main class
-import express.Express;
-public class Main {
-    public static void main(String[] args) {
-        Express app = new Express();
-        app.bind(new Bindings()); // See class below
-        app.listen();
-    }
-}
-
-// Your class with request handlers
-import express.DynExpress;
-import express.http.RequestMethod;
-import express.http.request.Request;
-import express.http.response.Response;
-public class Bindings {
-
-    @DynExpress() // Default is context="/" and method=RequestMethod.GET
-    public void getIndex(Request req, Response res) {
-        res.send("Hello World!");
-    }
-
-    @DynExpress(context = "/about") // Only context is defined, method=RequestMethod.GET is used as method
-    public void getAbout(Request req, Response res) {
-        res.send("About page");
-    }
-
-    @DynExpress(context = "/impressum", method = RequestMethod.PATCH) // Both defined
-    public void getImpressum(Request req, Response res) {
-        res.send("Impressum page was patched");
-    }
-
-    @DynExpress(method = RequestMethod.POST) // Only the method is defined, "/" is used as context
-    public void postIndex(Request req, Response res) {
-        res.send("POST to index");
-    }
-}
-
-
 ```
 
 ## URL Basics
@@ -635,5 +564,78 @@ new Express() {{
 }};
 ```
 
+## Router code splitting
+### With Router
+But it's better to split your code, right? With the `ExpressRouter` you can create routes and add it later to the `Express` object:
+```java
+Express app = new Express() {{
+
+  // Define root greeting
+  get("/", (req, res) -> res.send("Hello World!"));
+
+  // Define home routes
+  use("/home", new ExpressRouter(){{
+    get("/about", (req, res) -> res.send("About page"));
+    get("/impressum", (req, res) -> res.send("Impressum page"));
+    get("/sponsors", (req, res) -> res.send("Sponsors page"));
+  }});
+
+  // Define root routes
+  use("/", new ExpressRouter(){{
+    get("/login", (req, res) -> res.send("Login page"));
+    get("/register", (req, res) -> res.send("Register page"));
+    get("/contact", (req, res) -> res.send("Contact page"));
+  }});
+
+  // Start server
+  listen();
+}};
+```
+
+### DynExpress
+Express allows the attaching of request-handler to instance methods via the DynExpress annotation:
+```java
+
+// Your main class
+import express.Express;
+public class Main {
+    public static void main(String[] args) {
+        Express app = new Express();
+        app.bind(new Bindings()); // See class below
+        app.listen();
+    }
+}
+
+// Your class with request handlers
+import express.DynExpress;
+import express.http.RequestMethod;
+import express.http.request.Request;
+import express.http.response.Response;
+public class Bindings {
+
+    @DynExpress() // Default is context="/" and method=RequestMethod.GET
+    public void getIndex(Request req, Response res) {
+        res.send("Hello World!");
+    }
+
+    @DynExpress(context = "/about") // Only context is defined, method=RequestMethod.GET is used as method
+    public void getAbout(Request req, Response res) {
+        res.send("About page");
+    }
+
+    @DynExpress(context = "/impressum", method = RequestMethod.PATCH) // Both defined
+    public void getImpressum(Request req, Response res) {
+        res.send("Impressum page was patched");
+    }
+
+    @DynExpress(method = RequestMethod.POST) // Only the method is defined, "/" is used as context
+    public void postIndex(Request req, Response res) {
+        res.send("POST to index");
+    }
+}
+
+
+```
+
 ### License
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/Simonwep/java-express/blob/master/LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/Aarkan1/java-express/blob/master/LICENSE) file for details.
