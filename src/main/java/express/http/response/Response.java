@@ -154,6 +154,41 @@ public class Response {
     }
 
     /**
+     * Server Side Event to push data to the client
+     *
+     * @param event - The event client listens to
+     * @param data - The data to push to client
+     */
+    @Deprecated
+    public void serverSideEvent(String event, String data) {
+        if (isClosed()) return;
+
+        setStatus(Status._200);
+        setContentType("text/event-stream");
+        setHeader("Cache-Control", "no-cache");
+        setHeader("Connection", "keep-alive");
+
+        String message = "event: " + event + "\n" + "data: " + data + "\n\n";
+        send(message);
+    }
+
+    /**
+     * Server Side Event to push data to the client
+     *
+     * @param event - The event client listens to
+     * @param data - The data to push to client
+     */
+    @Deprecated
+    public void serverSideEvent(String event, Object data) {
+        if (isClosed()) return;
+        try {
+            serverSideEvent(event, objectMapper.writeValueAsString(data));
+        } catch (JsonProcessingException e) {
+            serverSideEvent("error", e.getMessage());
+        }
+    }
+
+    /**
      * Send an empty response (Content-Length = 0)
      */
     public void send() {
@@ -169,6 +204,7 @@ public class Response {
      * @param object The object
      */
     public void json(Object object) {
+        if (isClosed()) return;
         try {
             send(objectMapper.writeValueAsString(object));
         } catch (JsonProcessingException e) {

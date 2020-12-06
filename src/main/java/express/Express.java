@@ -3,6 +3,7 @@ package express;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsServer;
+import express.database.Database;
 import express.filter.FilterImpl;
 import express.filter.FilterLayerHandler;
 import express.filter.FilterTask;
@@ -83,6 +84,38 @@ public class Express implements Router {
      * Default, will bind the server to "localhost"
      */
     public Express() {
+    }
+
+    /**
+     * Enable embedded document database
+     *
+     * @return Express this express instance
+     */
+    public Express enableDatabase() {
+        new Database(this, "");
+        return this;
+    }
+
+    /**
+     * Enable embedded document database
+     *
+     * @param dbPath Path to database file
+     * @return Express this express instance
+     */
+    public Express enableDatabase(String dbPath) {
+        new Database(dbPath, this, "");
+        return this;
+    }
+
+    /**
+     *
+     * @param dbPath Path to database file
+     * @param packageName The package where the models are located
+     * @return Express this express instance
+     */
+    public Express enableDatabase(String dbPath, String packageName) {
+        new Database(dbPath, this, packageName);
+        return this;
     }
 
     /**

@@ -114,8 +114,8 @@ public class Request {
     /**
      * @return The request body as Object of target class
      */
-    public Object getBody(Class klass) {
-        return RequestUtils.convertBodyToObject(body, klass);
+    public <T> T getBody(Class<T> klass) {
+        return (T) RequestUtils.convertBodyToObject(body, klass);
     }
 
     /**

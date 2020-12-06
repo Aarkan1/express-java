@@ -13,12 +13,10 @@ app.listen(); // Will listen on port 80 which is set as default
 ## Installation
 
 ### Download
-> Direct download as jar: 
+**Direct download as jar:** 
+[Latest java-express-0.4.0.jar](https://github.com/Aarkan1/java-express/raw/master/releases/java-express-0.4.0.jar)
 
-[Latest java-express-0.3.5.jar](https://github.com/Aarkan1/java-express/raw/master/releases/java-express-0.3.5.jar)
-
-> Old version:
-
+**Old version:**
 [Older versions](https://github.com/Aarkan1/java-express/tree/master/releases)
 
 ### Maven
@@ -35,7 +33,7 @@ app.listen(); // Will listen on port 80 which is set as default
 <dependency>
     <groupId>com.github.Aarkan1</groupId>
     <artifactId>java-express</artifactId>
-    <version>0.3.5</version>
+    <version>0.4.0</version>
 </dependency>
 ```
 
@@ -47,7 +45,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.Aarkan1:java-express:0.3.5'
+    implementation 'com.github.Aarkan1:java-express:0.4.0'
 }
 ```
 
