@@ -104,12 +104,11 @@ public final class Utils {
         return path.substring(index);
     }
 
-    public static Object readResultSetToObject(ResultSet rs, Class klass) throws JsonProcessingException {
-        var json = readResultSetToJson(rs);
+    public static <T> T readResultSetToObject(ResultSet rs, Class<T> klass) throws JsonProcessingException {
+        String json = readResultSetToJson(rs);
         if(json == null) return null;
 
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(json, klass);
+        return new ObjectMapper().readValue(json, klass);
     }
 
     public static String readResultSetToJson(ResultSet rs) throws JsonProcessingException {
@@ -137,8 +136,7 @@ public final class Utils {
             return null;
         }
 
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(rows);
+        return new ObjectMapper().writeValueAsString(rows);
     }
 
 }
