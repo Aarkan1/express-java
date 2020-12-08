@@ -63,17 +63,19 @@ public class Database {
 
         if(klasses.isEmpty()) throw new ModelsNotFoundException("Must have a class with @Model to use embedded database.");
 
-        klasses.forEach(klass -> {
-            collections.putIfAbsent(klass.getSimpleName(), new Collection(db.getRepository(klass), klass));
-        });
+        klasses.forEach(klass -> collections.putIfAbsent(klass.getSimpleName(), new Collection(db.getRepository(klass), klass)));
+
+        sseWatchCollections(klasses);
 
         enabledDatabase = true;
         Runtime.getRuntime().addShutdownHook(new Thread(db::close));
     }
 
-    public static Collection collection(Class klass) {
-        return collection(klass.getSimpleName());
+    public static Collection collection(Object model) {
+        return collection(model.getClass().getSimpleName());
     }
+
+    public static Collection collection(Class klass) { return collection(klass.getSimpleName()); }
 
     public static Collection collection(String klass) {
         try {
@@ -90,6 +92,16 @@ public class Database {
         } else {
             throw new DatabaseNotEnabledException("Database is not enabled");
         }
+    }
+
+    private static void sseWatchCollections(Set<Class<?>> klasses) {
+        app.get("/watch-collections", (req, res) -> {
+            klasses.forEach(klass -> {
+               collection(klass).watch(watchData -> {
+                   res.sendSSE(watchData.getEvent(), watchData.getData());
+               });
+            });
+        });
     }
 
 }

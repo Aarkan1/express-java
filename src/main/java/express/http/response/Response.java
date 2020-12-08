@@ -159,8 +159,7 @@ public class Response {
      * @param event - The event client listens to
      * @param data - The data to push to client
      */
-    @Deprecated
-    public void serverSideEvent(String event, String data) {
+    public void sendSSE(String event, String data) {
         if (isClosed()) return;
 
         setStatus(Status._200);
@@ -169,23 +168,34 @@ public class Response {
         setHeader("Connection", "keep-alive");
 
         String message = "event: " + event + "\n" + "data: " + data + "\n\n";
-        send(message);
+
+        sendHeaders();
+        try {
+            this.body.write(message.getBytes());
+            this.body.flush();
+        } catch (IOException e) { }
     }
 
     /**
      * Server Side Event to push data to the client
      *
      * @param event - The event client listens to
-     * @param data - The data to push to client
+     * @param data - The data object to push to client as json
      */
-    @Deprecated
-    public void serverSideEvent(String event, Object data) {
+    public void sendSSE(String event, Object data) {
         if (isClosed()) return;
         try {
-            serverSideEvent(event, objectMapper.writeValueAsString(data));
+            sendSSE(event, objectMapper.writeValueAsString(data));
         } catch (JsonProcessingException e) {
-            serverSideEvent("error", e.getMessage());
+            sendSSE("error", e.getMessage());
         }
+    }
+
+    /**
+     * Close ongoing Server Side Event to enable client reconnect
+     */
+    public void closeSSE() {
+        close();
     }
 
     /**

@@ -24,10 +24,19 @@ import static org.dizitart.no2.objects.filters.ObjectFilters.eq;
 public class Collection {
     private final ObjectRepository repo;
     private final Class klass;
+    private String idField = null;
 
     public Collection(ObjectRepository repo, Class klass) {
         this.repo = repo;
         this.klass = klass;
+
+        // set id field name to optimise reflections
+        for(Field field : klass.getDeclaredFields()) {
+            if(field.isAnnotationPresent(Id.class)) {
+                idField = field.getName();
+                break;
+            }
+        }
     }
 
     public List find() {
@@ -155,21 +164,37 @@ public class Collection {
 
     private Map<String, String> getIdField(Object model) {
         Map<String, String> idValues = new HashMap<>();
-        try {
-            for(Field field : model.getClass().getDeclaredFields()) {
-                if(field.isAnnotationPresent(Id.class)) {
-                    field.setAccessible(true);
-                    if(field.get(model) == null) {
-                        field.set(model, UUID.randomUUID().toString());
-                    }
-                    idValues.putIfAbsent("name", field.getName());
-                    idValues.putIfAbsent("id", (String) field.get(model));
-                    break;
+
+        if(idField != null) {
+            try {
+                Field field = model.getClass().getDeclaredField(idField);
+                field.setAccessible(true);
+                if(field.get(model) == null) {
+                    field.set(model, UUID.randomUUID().toString());
                 }
+                idValues.putIfAbsent("name", field.getName());
+                idValues.putIfAbsent("id", (String) field.get(model));
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                e.printStackTrace();
             }
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+        } else {
+            try {
+                for(Field field : model.getClass().getDeclaredFields()) {
+                    if(field.isAnnotationPresent(Id.class)) {
+                        field.setAccessible(true);
+                        if(field.get(model) == null) {
+                            field.set(model, UUID.randomUUID().toString());
+                        }
+                        idValues.putIfAbsent("name", field.getName());
+                        idValues.putIfAbsent("id", (String) field.get(model));
+                        break;
+                    }
+                }
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
         }
+
         return idValues;
     }
 }
