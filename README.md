@@ -57,6 +57,7 @@ dependencies {
    * [URL Parameter Listener](#url-parameter-listener)
    * [URL Querys](#url-querys)
    * [Cookies](#cookies)
+   * [Server Side Events](#server-side-events)
    * [Form Data](#form-data)
    * [FileItem Object](#fileitem-object)
 * [HTTP Relevant classes](#http-relevant-classes)
@@ -97,15 +98,16 @@ app.get("/user", (req, res) -> res.send("Get an user!"));
 app.patch("/user", (req, res) -> res.send("Modify an user!"));
 app.delete("/user", (req, res) -> res.send("Delete an user!"));
 app.put("/user", (req, res) -> res.send("Add an user!"));
+app.post("/user", (req, res) -> res.send("Create an user!"));
 
-// Example fot the CONNECT method
+// Example for the CONNECT method
 app.on("/user", "CONNECT", (req, res) -> res.send("Connect!"));
 
 app.listen();
 ```
 
 ## URL Basics
-Over the express object you can create handler for all [request-methods](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) and contexts. Some examples:
+With the express object you can create handler for all [request-methods](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) and contexts. Some examples:
 ```java
 app.get("/home", (req, res) -> {
 	// Will match every request which uses the 'GET' method and matches the '/home' path
@@ -178,9 +180,50 @@ app.get("/showcookie", (req, res) -> {
 });
 ```
 
+## Server Side Events
+`res.sendSSE(EVENT, DATA)` takes the event as a String, and data as a String or an Object. The object will be converted to json before sending to clients. 
+If you want use SSE (Server Side Events) you'll have to create an endpoint for the client to connect to, for example in JavaScript via `new EventSource('/sse-endpoint')`. 
+Closing the SSE with `res.closeSSE()` will force the client to reconnect. If `res.closeSSE()` doesn't get called the SSE will stay connected and `res.sendSSE()` can be used multiple times before closing.
+
+Example Java:
+```java
+app.get("/sse-endpoint", (req, res) -> {
+   for(int i = 0; i < 20; i++) {
+
+      res.sendSSE("testEvent", "Test nr: " + i);
+
+      try {
+            Thread.sleep(1000);
+      } catch (InterruptedException e) {
+            e.printStackTrace();
+      }
+   }
+
+   res.closeSSE(); // this will close the event-stream, forcing the client to reconnect
+});
+```
+
+Example JavaScript:
+```js
+let testSource = new EventSource('/sse-endpoint');
+
+// the listener will trigger every 1 second with the above example,
+// then it will reconnect and start over from 0
+testSource.addEventListener('testEvent', (event) => {
+   console.log(event.data);
+   /*
+      Prints:
+      Test nr: 0
+      Test nr: 1
+      Test nr: 2
+      etc...
+   */
+});
+```
+
 ### Form data
-Over `req.getFormData(NAME)` you receive a list of FileItems from the posted FormData.
-`req.getFormData()` without param returns a Map, where key is the field name and value the list of FileItems.
+With `req.getFormData(NAME)` you receive a list of FileItems from the posted FormData.
+`req.getFormData()` without a param will return a Map, where key is the field name and value the list of FileItems.
 Example JavaScript:
 ```js
 let files = document.querySelector('input[type=file]').files;
@@ -227,7 +270,7 @@ fileItem.getOutputStream();      // Returns the file outputstream
 fileItem.getSize();              // Returns the form data size
 ```
 
-Over `req.getFormQuery(NAME)` you receive the values from the input elements of an HTML-Form.
+With `req.getFormQuery(NAME)` you receive the values from the input elements of an HTML-Form.
 Example HTML-Form:
 ```html
 <form action="http://localhost/register" method="post">
@@ -279,10 +322,11 @@ app.listen(ExpressListener onstart);                            // Start the asy
 app.listen(int port);                                           // Start the async server on an specific port
 app.listen(ExpressListener onstart, int port);                  // Start the async server on an specific port call the listener after starting
 app.stop();                                                     // Stop the server and all middleware worker
+app.enableDatabase();                                           // Enables the embedded document database
 ```
 
 ### Response Object
-Over the `Response` object, you have several possibility like setting cookies, send an file and more. Below is an short explanation what methods exists:
+With the `Response` object, you have several possibility like setting cookies, send an file and more. Below is an short explanation what methods exists:
 (We assume that `res` is the `Response` object)
 
 ```java
@@ -298,6 +342,9 @@ res.send(Path path);                   // Send a file as response
 res.send(byte[] bytes)                 // Send bytes as response
 res.send();                            // Send empty response
 res.json(Object object);               // Send object as JSON response
+res.sendSSE(String event, String data);// Send a server side event message to target listener
+res.sendSSE(String event, Object data);// Send a server side event object as json to target listener
+res.closeSSE();                        // Close the ongoing server side event session (note: client will automatically reconnect after 3 seconds)
 res.redirect(String location);         // Redirect the request to another url
 res.setCookie(Cookie cookie);          // Add an cookie to the response
 res.sendStatus(Status status);         // Set the response status and send an empty response
@@ -308,7 +355,7 @@ res.streamFrom(long contentLength, InputStream is, MediaType mediaType) // Send 
 The response object calls are comments because **you can only call the .send(xy) once each request!**
 
 ### Request Object
-Over the `Request` object you have access to several request stuff (We assume that `req` is the `Request` object):
+With the `Request` object you have access to several request stuff (We assume that `req` is the `Request` object):
 
 ```java
 req.getAddress();                 // Returns the INET-Adress from the client
