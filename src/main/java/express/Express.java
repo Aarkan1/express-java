@@ -38,6 +38,8 @@ public class Express implements Router {
     private HttpServer httpServer;
     private HttpsConfigurator httpsConfigurator;
 
+    private Database database = null;
+
     {
         // Initialize
         parameterListener = new ConcurrentHashMap<>();
@@ -92,7 +94,7 @@ public class Express implements Router {
      * @return Express this express instance
      */
     public Express enableDatabase() {
-        new Database(this, "");
+        database = new Database(this);
         return this;
     }
 
@@ -103,18 +105,7 @@ public class Express implements Router {
      * @return Express this express instance
      */
     public Express enableDatabase(String dbPath) {
-        new Database(dbPath, this, "");
-        return this;
-    }
-
-    /**
-     *
-     * @param dbPath Path to database file
-     * @param packageName The package where the models are located
-     * @return Express this express instance
-     */
-    public Express enableDatabase(String dbPath, String packageName) {
-        new Database(dbPath, this, packageName);
+        database = new Database(dbPath, this);
         return this;
     }
 
@@ -422,6 +413,10 @@ public class Express implements Router {
      * Stop express
      */
     public void stop() {
+        if(database != null) {
+            database.closeBrowser();
+        }
+
         if (httpServer != null) {
 
             // Stop http-server

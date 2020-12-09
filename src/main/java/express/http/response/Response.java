@@ -310,6 +310,10 @@ public class Response {
         return true;
     }
 
+    public OutputStream getWriter() {
+        return body;
+    }
+
     /**
      * Send a byte array as response. Content type will be
      * set to application/octet-streamFrom

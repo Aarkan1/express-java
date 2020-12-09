@@ -501,12 +501,12 @@ app.use(Middleware.cors());
 ```
 
 #### Provide static Files
-If you want to allocate some files, like librarys, css, images etc. you can use the [static](https://github.com/Simonwep/java-express/blob/master/src/express/middleware/Middleware.java) middleware. But you can also provide other files like mp4 etc.
+If you want to allocate some files, like librarys, css, images etc. you can use the [static](https://github.com/Aarkan1/java-express/blob/master/src/express/middleware/Middleware.java) middleware. But you can also provide other files like mp4 etc.
 Example:
 ```java
  app.use(Middleware.statics("examplepath\\myfiles"));
 ```
-Now you can access every files in the `test_statics` over the root adress `\`. I'ts also possible to set an configuration for the FileProvider:
+Now you can access every files in the `test_statics` over the root adress `\`. It's also possible to set a configuration for the FileProvider:
 ```java
 FileProviderOptionsoptions = new FileProviderOptions();
 options.setExtensions("html", "css", "js"); // By default, all are allowed.
@@ -514,7 +514,7 @@ options.setExtensions("html", "css", "js"); // By default, all are allowed.
 /*
  * Activate the fallbacksearch.
  * E.g. if an request to <code>/js/code.js</code> was made but the
- * requested ressource cannot be found. It will be looked for an file called <code>code</code>
+ * requested resource cannot be found. It will be looked for an file called <code>code</code>
  * and return it.
  *
  *  Default is false
@@ -529,8 +529,8 @@ app.use(Middleware.statics("examplepath\\myfiles", new FileProviderOptions())); 
 #### Cookie Session
 There is also an simple cookie-session implementation:
 ```java
-// You should use an meaningless cookie name for serveral security reasons, here f3v4.
-// Also you can specify the maximum age of the cookie from the creation date and the file types wich are actually allowed.
+// You should use an meaningless cookie name for several security reasons, here f3v4.
+// Also you can specify the maximum age of the cookie from the creation date and the file types which are actually allowed.
 app.use(Middleware.cookieSession("f3v4", 9000));
 ```
 To use a session cookie we need to get the data from the middleware which is actually an `SessionCookie`:
