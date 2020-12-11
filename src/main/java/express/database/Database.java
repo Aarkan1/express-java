@@ -81,13 +81,9 @@ public class Database {
      */
     private static void initBrowser(Set<String> klassNames) {
 
-        express.get("/rest/klassNames", (req, res) -> {
-            res.json(klassNames);
-        });
+        express.get("/rest/klassNames", (req, res) -> res.json(klassNames));
 
-        express.get("/rest/:coll", (req, res) -> {
-            res.json(collection(req.getParam("coll")).find());
-        });
+        express.get("/rest/:coll", (req, res) -> res.json(collection(req.getParam("coll")).find()));
 
         try {
             express.use(new FileInJarProvider("/browser"));
