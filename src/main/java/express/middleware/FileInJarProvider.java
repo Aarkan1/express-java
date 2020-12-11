@@ -20,7 +20,7 @@ public final class FileInJarProvider implements HttpRequestHandler {
         this.logger.setUseParentHandlers(false);  // Disable default console log
     }
 
-    FileInJarProvider(String root) throws IOException {
+    public FileInJarProvider(String root) throws IOException {
         if (!root.startsWith("/browser")) {
             throw new IOException(root + " does not exists or isn't a directory.");
         }

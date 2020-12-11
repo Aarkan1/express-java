@@ -49,18 +49,6 @@ public final class Middleware {
     }
 
     /**
-     * This class serves an entire folder which can contains static file for your
-     * web application, You can use <code>StaticOptions</code> to add som configurations.
-     *
-     * @param directoryPath The root directory
-     * @return A fresh FileProvider
-     * @throws IOException If path cannot be found or something like that
-     */
-    public static FileInJarProvider staticsFromEmbeddedBrowser(String directoryPath) throws IOException {
-        return new FileInJarProvider(directoryPath);
-    }
-
-    /**
      * CORS Middleware
      *
      * @param options Cors options

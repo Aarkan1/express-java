@@ -3,6 +3,7 @@ package express.database;
 import express.Express;
 import express.database.exceptions.DatabaseNotEnabledException;
 import express.database.exceptions.ModelsNotFoundException;
+import express.middleware.FileInJarProvider;
 import express.middleware.Middleware;
 import org.dizitart.no2.Nitrite;
 import org.reflections8.Reflections;
@@ -14,6 +15,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Johan Wirén
@@ -26,8 +28,7 @@ public class Database {
     private static Map<String, Collection> collections = new HashMap<>();
     private static boolean enabledDatabase = false;
     private static Express app;
-    private static Set<Class<?>> klasses = null;
-    private Express express = new Express();
+    private static Express express = new Express();
 
     public Database(Express app) {
         Database.app = app;
@@ -36,7 +37,6 @@ public class Database {
         } catch (ModelsNotFoundException e) {
             e.printStackTrace();
         }
-        initBrowser();
     }
 
     public Database(String dbPath, Express app) {
@@ -46,7 +46,6 @@ public class Database {
         } catch (ModelsNotFoundException e) {
             e.printStackTrace();
         }
-        initBrowser();
     }
 
     private static void init(String dbPath) throws ModelsNotFoundException {
@@ -64,12 +63,14 @@ public class Database {
 
         Reflections reflections = new Reflections();
         Set<Class<?>> klasses = reflections.getTypesAnnotatedWith(Model.class);
+        Set<String> klassNames = klasses.stream().map(Class::getSimpleName).collect(Collectors.toSet());
 
         if(klasses.isEmpty()) throw new ModelsNotFoundException("Must have a class with @Model to use embedded database.");
 
         klasses.forEach(klass -> collections.putIfAbsent(klass.getSimpleName(), new Collection(db.getRepository(klass), klass)));
 
         sseWatchCollections(klasses);
+        initBrowser(klassNames);
 
         enabledDatabase = true;
         Runtime.getRuntime().addShutdownHook(new Thread(db::close));
@@ -78,14 +79,18 @@ public class Database {
     /**
      * Embedded server to browse collections locally
      */
-    private void initBrowser() {
+    private static void initBrowser(Set<String> klassNames) {
+
+        express.get("/rest/klassNames", (req, res) -> {
+            res.json(klassNames);
+        });
 
         express.get("/rest/:coll", (req, res) -> {
             res.json(collection(req.getParam("coll")).find());
         });
 
         try {
-            express.use(Middleware.staticsFromEmbeddedBrowser("/browser"));
+            express.use(new FileInJarProvider("/browser"));
         } catch (IOException e) {
             e.printStackTrace();
         }

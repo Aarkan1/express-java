@@ -1,7 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'idea'
 
-sourceSets.main.resources { srcDirs = ["src/main/java/express/database"]; include "**/*.*" }
+sourceSets.main.resources { srcDirs = ["src/main/java/express/database/browser"]; include "**/*.*" }
 
 jar {
     from {
