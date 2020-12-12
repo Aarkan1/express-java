@@ -15,6 +15,10 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
+import java.util.logging.StreamHandler;
 import java.util.stream.Collectors;
 
 /**
@@ -29,6 +33,7 @@ public class Database {
     private static boolean enabledDatabase = false;
     private static Express app;
     private static Express express = new Express();
+    private static Logger logger;
 
     public Database(Express app) {
         Database.app = app;
@@ -49,6 +54,8 @@ public class Database {
     }
 
     private static void init(String dbPath) throws ModelsNotFoundException {
+        logger = Logger.getLogger(Database.class.getSimpleName());
+
         if(dbPath.startsWith("db/")) {
             File directory = new File(Paths.get("db").toString());
             if (! directory.exists()){
@@ -69,7 +76,7 @@ public class Database {
 
         klasses.forEach(klass -> collections.putIfAbsent(klass.getSimpleName(), new Collection(db.getRepository(klass), klass)));
 
-        sseWatchCollections(klasses);
+        sseWatchCollections();
         initBrowser(klassNames);
 
         enabledDatabase = true;
@@ -80,9 +87,7 @@ public class Database {
      * Embedded server to browse collections locally
      */
     private static void initBrowser(Set<String> klassNames) {
-
         express.get("/rest/klassNames", (req, res) -> res.json(klassNames));
-
         express.get("/rest/:coll", (req, res) -> res.json(collection(req.getParam("coll")).find()));
 
         try {
@@ -91,7 +96,7 @@ public class Database {
             e.printStackTrace();
         }
 
-        express.listen(() -> System.out.println("Browse collections on http://localhost:9595"), 9595);
+        express.listen(() -> System.out.println("\nBrowse collections: \thttp://localhost:9595\n\n"), 9595);
     }
 
     public void closeBrowser() {
@@ -107,8 +112,8 @@ public class Database {
     public static Collection collection(String klass) {
         try {
             return getColl(klass);
-        } catch (DatabaseNotEnabledException e) {
-            e.printStackTrace();
+        } catch (DatabaseNotEnabledException | NullPointerException e) {
+            logger.log(Level.WARNING, "Database not enabled.", e);
         }
         return null;
     }
@@ -121,14 +126,11 @@ public class Database {
         }
     }
 
-    private static void sseWatchCollections(Set<Class<?>> klasses) {
-        app.get("/watch-collections", (req, res) -> {
-            klasses.forEach(klass -> {
-               collection(klass).watch(watchData -> {
-                   res.sendSSE(watchData.getEvent(), watchData.getData());
-               });
-            });
-        });
+    private static void sseWatchCollections() {
+        app.get("/watch-collection/:coll", (req, res) ->
+               collection(req.getParam("coll")).watch(watchData ->
+                   res.sendSSE(watchData.getEvent(), watchData.getData())
+            ));
     }
 
 }

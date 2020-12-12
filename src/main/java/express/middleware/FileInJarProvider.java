@@ -6,6 +6,7 @@ import express.http.request.Request;
 import express.http.response.Response;
 import express.utils.MediaType;
 import java.io.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -17,7 +18,6 @@ public final class FileInJarProvider implements HttpRequestHandler {
 
     {
         this.logger = Logger.getLogger(this.getClass().getSimpleName());
-        this.logger.setUseParentHandlers(false);  // Disable default console log
     }
 
     public FileInJarProvider(String root) throws IOException {
@@ -46,6 +46,10 @@ public final class FileInJarProvider implements HttpRequestHandler {
 
             if (resourceStream != null) {
                 finish(path, resourceStream, req, res);
+            } else {
+                path = "/index.html";
+                InputStream fallbackStream = Express.class.getResourceAsStream("/browser" + path);
+                finish(path, fallbackStream, req, res);
             }
         } catch (Exception e) {
             e.printStackTrace();

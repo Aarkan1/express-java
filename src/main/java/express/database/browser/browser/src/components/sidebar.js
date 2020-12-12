@@ -29,9 +29,13 @@ export default {
             setTimeout(() => { 
                 const lightCSS = document.querySelector('link[href*="light.min.css"]')
                 const darkCSS = document.querySelector('link[href*="dark.min.css"]')
+                const jsonLightCSS = document.querySelector('link[href*="viewer-light.css"]')
+                const jsonDarkCSS = document.querySelector('link[href*="viewer-dark.css"]')
                 
-                lightCSS.setAttribute('rel', isLightTheme.value ? 'stylesheet' : 'stylesheet alternate')
-                darkCSS.setAttribute('rel', isLightTheme.value ? 'stylesheet alternate' : 'stylesheet')
+                lightCSS.setAttribute('rel', (localStorage['colorTheme'] == 'light') ? 'stylesheet' : 'stylesheet alternate')
+                darkCSS.setAttribute('rel', (localStorage['colorTheme'] == 'light') ? 'stylesheet alternate' : 'stylesheet')
+                jsonLightCSS.setAttribute('rel', (localStorage['colorTheme'] == 'light') ? 'stylesheet' : 'stylesheet alternate')
+                jsonDarkCSS.setAttribute('rel', (localStorage['colorTheme'] == 'light') ? 'stylesheet alternate' : 'stylesheet')
                 
                 localStorage['colorTheme'] = isLightTheme.value ? 'light' : 'dark'
             }, 0);

@@ -1,9 +1,12 @@
 const { ref } = Vue
+const { useStore } = Vuex
 
 export default {
     template: `
         <aside>
             Sidebar
+
+            <slot></slot>
 
             <div>
                 Theme
@@ -16,6 +19,10 @@ export default {
         </aside>
     `,
     setup() {
+        const store = useStore()
+
+        console.log(store.state.activeKlass);
+
         const isLightTheme = ref(localStorage['colorTheme'] == 'light')
 
         const toggleTheme = () => {

@@ -44,7 +44,6 @@ public class Response {
         this.contentLength = 0;
         this.status = 200;
         this.logger = Logger.getLogger(getClass().getSimpleName());
-        this.logger.setUseParentHandlers(false); // Disable default console log
         this.objectMapper = new ObjectMapper();
     }
 
@@ -363,6 +362,13 @@ public class Response {
             return false;
         }
 
+        // if no mediaType then there's probably no file
+        if(mediaType == null) {
+            sendHeaders();
+            close();
+            return false;
+        }
+
         try {
             this.contentLength = contentLength;
 
@@ -380,7 +386,7 @@ public class Response {
             }
 
             is.close();
-        } catch (IOException e) {
+        } catch (IOException | NullPointerException e ) {
             logger.log(Level.INFO, "Failed to pipe file to outputstream.", e);
             return false;
         } finally {

@@ -1,16 +1,10 @@
-import app from './src/app.js'
+import App from './src/app.js'
+import store from './src/store.js'
 
-// const lightCSS = document.querySelector('link[href*="light.min.css"]')
-// const darkCSS = document.querySelector('link[href*="dark.min.css"]')
-
-// !localStorage['colorTheme'] && (localStorage['colorTheme'] = 'light')
-// lightCSS.setAttribute('rel', (localStorage['colorTheme'] == 'light') ? 'stylesheet' : 'stylesheet alternate')
-// darkCSS.setAttribute('rel', (localStorage['colorTheme'] == 'light') ? 'stylesheet alternate' : 'stylesheet')
-
-const { createApp } = Vue;
-createApp(app).mount('#app');
-
-
+const { createApp } = Vue
+const app = createApp(App)
+app.use(store)
+app.mount('#app')
 
 
 async function getCollectionNames() {

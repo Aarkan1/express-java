@@ -29,7 +29,7 @@ public final class FileProvider implements HttpRequestHandler {
 
     {
         this.logger = Logger.getLogger(this.getClass().getSimpleName());
-        this.logger.setUseParentHandlers(false);  // Disable default console log
+//        this.logger.setUseParentHandlers(false);  // Disable default console log
     }
 
     FileProvider(String root, FileProviderOptions options) throws IOException {

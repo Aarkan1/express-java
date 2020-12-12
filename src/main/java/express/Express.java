@@ -15,7 +15,9 @@ import express.http.response.Response;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
@@ -341,6 +343,13 @@ public class Express implements Router {
      */
     public void listen() {
         listen(null, 80);
+        System.out.println("\n\nServer started: \t\thttp://" + (hostname == null ? "localhost" : hostname) + ":80");
+        try {
+            String ip = InetAddress.getLocalHost().getHostAddress();
+            System.out.println("Connect from network: \thttp://" + ip + ":80");
+        } catch (UnknownHostException e) { }
+
+        if(database == null) System.out.println("\n");
     }
 
     /**
@@ -351,6 +360,13 @@ public class Express implements Router {
      */
     public void listen(int port) {
         listen(null, port);
+        System.out.println("\n\nServer started: \t\thttp://" + (hostname == null ? "localhost" : hostname) + ":" + port);
+        try {
+            String ip = InetAddress.getLocalHost().getHostAddress();
+            System.out.println("Connect from network: \thttp://" + ip + ":" + port);
+        } catch (UnknownHostException e) { }
+
+        if(database == null) System.out.println("\n");
     }
 
     /**

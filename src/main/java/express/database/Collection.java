@@ -142,7 +142,7 @@ public class Collection {
         NitriteMapper mapper = new JacksonMapper();
         repo.register(changeInfo -> {
             WatchData watchData = new WatchData();
-            watchData.setEvent(changeInfo.getChangeType().toString().equals("REMOVE") ? "DELETE" : changeInfo.getChangeType().toString());
+            watchData.setEvent(changeInfo.getChangeType().toString().equals("REMOVE") ? "delete" : changeInfo.getChangeType().toString().toLowerCase());
             List items = new ArrayList();
 
             for (ChangedItem item : changeInfo.getChangedItems()) {

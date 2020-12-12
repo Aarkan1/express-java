@@ -7,6 +7,8 @@
 
     <link rel="stylesheet" href="/libs/light.min.css">
     <link rel="stylesheet alternate" href="/libs/dark.min.css">
+
+    <!-- Toggle loaded theme based on localStorage -->
     <script>
         const lightCSS = document.querySelector('link[href*="light.min.css"]')
         const darkCSS = document.querySelector('link[href*="dark.min.css"]')
@@ -15,13 +17,14 @@
         lightCSS.setAttribute('rel', (localStorage['colorTheme'] == 'light') ? 'stylesheet' : 'stylesheet alternate')
         darkCSS.setAttribute('rel', (localStorage['colorTheme'] == 'light') ? 'stylesheet alternate' : 'stylesheet')
     </script>
-    
+
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
     <div id="app"></div>
 
     <script src="/libs/vue.global.prod.js"></script>
+    <script src="/libs/vuex.global.prod.js"></script>
     <script src="/main.js" type="module"></script>
 </body>
 </html>
