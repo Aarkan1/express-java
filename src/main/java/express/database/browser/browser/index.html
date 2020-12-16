@@ -5,10 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Collection Browser</title>
 
-    <link rel="stylesheet" href="/libs/json-viewer-light.css">
-    <link rel="stylesheet alternate" href="/libs/json-viewer-dark.css">
-    <link rel="stylesheet" href="/libs/light.min.css">
-    <link rel="stylesheet alternate" href="/libs/dark.min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.1/styles/default.min.css">
+    <link rel="stylesheet" href="/www/libs/json-viewer-light.css">
+    <link rel="stylesheet" href="/www/libs/tomorrow.css">
+    <link rel="stylesheet alternate" href="/www/libs/json-viewer-dark.css">
+    <link rel="stylesheet" href="/www/libs/light.min.css">
+    <link rel="stylesheet alternate" href="/www/libs/dark.min.css">
     
     <!-- Toggle loaded theme based on localStorage -->
     <script>
@@ -24,14 +26,15 @@
         jsonDarkCSS.setAttribute('rel', (localStorage['colorTheme'] == 'light') ? 'stylesheet alternate' : 'stylesheet')
         </script>
 
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/www/styles.css">
 </head>
 <body>
     <div id="app"></div>
 
-    <script src="/libs/json-viewer.js"></script>
-    <script src="/libs/vue.global.prod.js"></script>
-    <script src="/libs/vuex.global.prod.js"></script>
-    <script src="/main.js" type="module"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.1/highlight.min.js"></script>   
+    <script src="/www/libs/json-viewer.js"></script>
+    <script src="/www/libs/vue.global.prod.js"></script>
+    <script src="/www/libs/vuex.global.prod.js"></script>
+    <script src="/www/main.js" type="module"></script>
 </body>
 </html>

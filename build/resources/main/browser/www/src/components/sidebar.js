@@ -1,14 +1,18 @@
-const { ref } = Vue
+const { ref, computed } = Vue
 const { useStore } = Vuex
 
 export default {
     template: `
         <aside>
-            Sidebar
-
-            <slot></slot>
-
             <div>
+                <button @click="refresh">Refresh</button>
+                <slot></slot>
+                <div v-if="props.displayCollections">
+                    <a @click.prevent="setActiveColl(coll)" v-for="coll of colls" :key="coll">{{ coll }}</a>
+                </div>
+            </div>
+            
+            <div style="margin-left: 20px; margin-top: 10px;">
                 Theme
                 <label class="switch" @click.stop="toggleTheme">
                     <input v-model="isLightTheme" type="checkbox">
@@ -18,10 +22,11 @@ export default {
             </div>
         </aside>
     `,
-    setup() {
+    props: ['displayCollections'],
+    setup(props) {
         const store = useStore()
-
-        console.log(store.state.activeKlass);
+        const colls = computed(() => store.state.collNames)
+        const setActiveColl = coll => store.commit('setActiveColl', coll)
 
         const isLightTheme = ref(localStorage['colorTheme'] == 'light')
 
@@ -41,9 +46,18 @@ export default {
             }, 0);
         }
 
+        const refresh = () => {
+            history.pushState({ url: '/' }, '', '/')
+            location.reload()
+        }
+
         return {
             isLightTheme,
-            toggleTheme
+            toggleTheme,
+            colls,
+            setActiveColl,
+            props,
+            refresh
         }
     }
 }

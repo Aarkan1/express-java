@@ -19,8 +19,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class Utils {
+    private static final Logger logger = Logger.getLogger(Utils.class.getSimpleName());
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     private Utils() {}
 
@@ -108,7 +112,7 @@ public final class Utils {
         String json = readResultSetToJson(rs);
         if(json == null) return null;
 
-        return new ObjectMapper().readValue(json, klass);
+        return mapper.readValue(json, klass);
     }
 
     public static String readResultSetToJson(ResultSet rs) throws JsonProcessingException {
@@ -132,11 +136,11 @@ public final class Utils {
                 rows.add(row);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.log(Level.INFO, "Failed to convert ResultSet to json.", e);
             return null;
         }
 
-        return new ObjectMapper().writeValueAsString(rows);
+        return mapper.writeValueAsString(rows);
     }
 
 }

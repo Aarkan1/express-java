@@ -21,6 +21,8 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -51,10 +53,12 @@ public class Request {
 
     private HashMap<String, String> params;             // URL Params, would be added in ExpressFilterImpl
     private String context;                             // Context which matched
+    private final Logger logger;
 
     {
         this.middleware = new HashMap<>();
         this.params = new HashMap<>();
+        this.logger = Logger.getLogger(getClass().getSimpleName());
     }
 
     public Request(HttpExchange exchange, Express express) {
@@ -66,7 +70,7 @@ public class Request {
         this.inet = exchange.getRemoteAddress();
 
         this.protocol = exchange.getProtocol();
-        this.secure = exchange instanceof HttpsExchange; // Can be suckered?
+        this.secure = exchange instanceof HttpsExchange; // Can be secured?
 
         // Parse content length
         String contentLength = headers.get("Content-Length") != null ? headers.get("Content-Length").get(0) : null;
@@ -89,6 +93,7 @@ public class Request {
                         ? MultipartParser.parseRequest(body.readAllBytes(), contentType)
                         : new HashMap<>();
             } catch (FileUploadException | IOException e) {
+                logger.log(Level.INFO, "Failed to upload file.", e);
                 formData = new HashMap<>();
             }
 
@@ -108,14 +113,20 @@ public class Request {
      * @return The request body as a Map of key values
      */
     public Map getBody() {
-        return (Map) getBody(Map.class);
+        try {
+            return getBody(Map.class);
+        } catch (IOException e) {
+            logger.log(Level.INFO, "Failed to convert body to Map", e);
+        }
+        return null;
     }
 
     /**
      * @return The request body as Object of target class
+     * @throws IOException If an IO-Error occurs.
      */
-    public <T> T getBody(Class<T> klass) {
-        return (T) RequestUtils.convertBodyToObject(body, klass);
+    public <T> T getBody(Class<T> klass) throws IOException {
+        return RequestUtils.convertBodyToObject(body, klass);
     }
 
     /**
@@ -459,7 +470,7 @@ public class Request {
     /**
      * @return Map<FormData entry, List of appended items>
      */
-    public Map<String, List<FileItem>> getFormData() throws IOException, FileUploadException {
+    public Map<String, List<FileItem>> getFormData() {
         return formData;
     }
 
@@ -467,7 +478,7 @@ public class Request {
      * @param name The FormData entry
      * @return List of FileItems from the FormData with provided key
      */
-    public List<FileItem> getFormData(String name) throws IOException, FileUploadException {
+    public List<FileItem> getFormData(String name) {
         return formData.get(name);
     }
 

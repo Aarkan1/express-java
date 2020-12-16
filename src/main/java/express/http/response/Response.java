@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
+import express.database.WatchData;
 import express.http.Cookie;
 import express.utils.MediaType;
 import express.utils.Status;
@@ -168,11 +169,19 @@ public class Response {
 
         String message = "event: " + event + "\n" + "data: " + data + "\n\n";
 
-        sendHeaders();
+        try {
+            // Set header and send response
+            this.headers.set("Content-Type", contentType);
+            this.httpExchange.sendResponseHeaders(status, contentLength);
+        } catch (IOException ignore) { }
+
         try {
             this.body.write(message.getBytes());
             this.body.flush();
-        } catch (IOException e) { }
+        } catch (IOException ignore) {
+            // client disconnected
+            closeSSE();
+        }
     }
 
     /**
@@ -186,6 +195,7 @@ public class Response {
         try {
             sendSSE(event, objectMapper.writeValueAsString(data));
         } catch (JsonProcessingException e) {
+            logger.log(Level.INFO, "Failed to send event stream.", e);
             sendSSE("error", e.getMessage());
         }
     }
@@ -194,7 +204,10 @@ public class Response {
      * Close ongoing Server Side Event to enable client reconnect
      */
     public void closeSSE() {
-        close();
+        try {
+            this.body.close();
+            this.isClose = true;
+        } catch (IOException ignore) { }
     }
 
     /**
@@ -217,6 +230,7 @@ public class Response {
         try {
             send(objectMapper.writeValueAsString(object));
         } catch (JsonProcessingException e) {
+            logger.log(Level.INFO, "Failed to send json.", e);
             send("error: " + e.getMessage());
         }
     }
@@ -414,8 +428,9 @@ public class Response {
     }
 
     private void sendHeaders() {
-        try {
+        if(isClosed()) return;
 
+        try {
             // Fallback
             String contentType = getContentType() == null ? MediaType._bin.getExtension() : getContentType();
 

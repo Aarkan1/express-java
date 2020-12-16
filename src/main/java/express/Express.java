@@ -3,6 +3,7 @@ package express;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsServer;
+import express.database.CollectionOptions;
 import express.database.Database;
 import express.filter.FilterImpl;
 import express.filter.FilterLayerHandler;
@@ -22,6 +23,8 @@ import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
+import static express.utils.Utils.getYourIp;
 
 /**
  * @author Simon Reinisch
@@ -95,8 +98,18 @@ public class Express implements Router {
      *
      * @return Express this express instance
      */
-    public Express enableDatabase() {
+    public Express enableCollections() {
         database = new Database(this);
+        return this;
+    }
+
+    /**
+     * Enable embedded document database
+     *
+     * @return Express this express instance
+     */
+    public Express enableCollections(CollectionOptions... options) {
+        database = new Database(this, options);
         return this;
     }
 
@@ -106,8 +119,19 @@ public class Express implements Router {
      * @param dbPath Path to database file
      * @return Express this express instance
      */
-    public Express enableDatabase(String dbPath) {
+    public Express enableCollections(String dbPath) {
         database = new Database(dbPath, this);
+        return this;
+    }
+
+    /**
+     * Enable embedded document database
+     *
+     * @param dbPath Path to database file
+     * @return Express this express instance
+     */
+    public Express enableCollections(String dbPath, CollectionOptions... options) {
+        database = new Database(dbPath, this, options);
         return this;
     }
 
@@ -345,8 +369,7 @@ public class Express implements Router {
         listen(null, 80);
         System.out.println("\n\nServer started: \t\thttp://" + (hostname == null ? "localhost" : hostname) + ":80");
         try {
-            String ip = InetAddress.getLocalHost().getHostAddress();
-            System.out.println("Connect from network: \thttp://" + ip + ":80");
+            System.out.println("Connect from network: \thttp://" + getYourIp() + ":80");
         } catch (UnknownHostException e) { }
 
         if(database == null) System.out.println("\n");
@@ -362,8 +385,7 @@ public class Express implements Router {
         listen(null, port);
         System.out.println("\n\nServer started: \t\thttp://" + (hostname == null ? "localhost" : hostname) + ":" + port);
         try {
-            String ip = InetAddress.getLocalHost().getHostAddress();
-            System.out.println("Connect from network: \thttp://" + ip + ":" + port);
+            System.out.println("Connect from network: \thttp://" + getYourIp() + ":" + port);
         } catch (UnknownHostException e) { }
 
         if(database == null) System.out.println("\n");

@@ -31,6 +31,7 @@ public final class FileInJarProvider implements HttpRequestHandler {
         try {
             String path = req.getURI().getPath();
 
+
             // Check context
             String context = req.getContext();
             if (path.indexOf(context) == 0) {
@@ -42,17 +43,20 @@ public final class FileInJarProvider implements HttpRequestHandler {
                 path = "/index.html";
             }
 
-            InputStream resourceStream = Express.class.getResourceAsStream("/browser" + path);
+            if(path.startsWith("/www") || path.equals("/index.html")) {
+                InputStream resourceStream = Express.class.getResourceAsStream("/browser" + path);
 
-            if (resourceStream != null) {
-                finish(path, resourceStream, req, res);
-            } else {
-                path = "/index.html";
-                InputStream fallbackStream = Express.class.getResourceAsStream("/browser" + path);
-                finish(path, fallbackStream, req, res);
+                if (resourceStream != null) {
+                    finish(path, resourceStream, req, res);
+                } else {
+                    path = "/index.html";
+                    InputStream fallbackStream = Express.class.getResourceAsStream("/browser" + path);
+                    finish(path, fallbackStream, req, res);
+                }
             }
+
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.INFO, "Could not find file in Jar.", e);
         }
     }
 

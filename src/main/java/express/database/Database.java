@@ -4,21 +4,19 @@ import express.Express;
 import express.database.exceptions.DatabaseNotEnabledException;
 import express.database.exceptions.ModelsNotFoundException;
 import express.middleware.FileInJarProvider;
-import express.middleware.Middleware;
 import org.dizitart.no2.Nitrite;
+import org.dizitart.no2.objects.Id;
 import org.reflections8.Reflections;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.lang.reflect.Field;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
-import java.util.logging.StreamHandler;
 import java.util.stream.Collectors;
 
 /**
@@ -34,9 +32,22 @@ public class Database {
     private static Express app;
     private static Express express = new Express();
     private static Logger logger;
+    private static boolean enableSSEwatcher = false;
+    private static boolean disableBrowser = false;
 
     public Database(Express app) {
         Database.app = app;
+        try {
+            init("db/embedded.db");
+        } catch (ModelsNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Database(Express app, CollectionOptions... options) {
+        Database.app = app;
+        setOptions(options);
+
         try {
             init("db/embedded.db");
         } catch (ModelsNotFoundException e) {
@@ -50,6 +61,24 @@ public class Database {
             init(dbPath);
         } catch (ModelsNotFoundException e) {
             e.printStackTrace();
+        }
+    }
+
+    public Database(String dbPath, Express app, CollectionOptions... options) {
+        Database.app = app;
+        setOptions(options);
+
+        try {
+            init(dbPath);
+        } catch (ModelsNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void setOptions(CollectionOptions... options) {
+        for (CollectionOptions option : options) {
+            if(option == CollectionOptions.ENABLE_SSE_WATCHER) enableSSEwatcher = true;
+            else if(option == CollectionOptions.DISABLE_BROWSER) disableBrowser = true;
         }
     }
 
@@ -70,14 +99,25 @@ public class Database {
 
         Reflections reflections = new Reflections();
         Set<Class<?>> klasses = reflections.getTypesAnnotatedWith(Model.class);
-        Set<String> klassNames = klasses.stream().map(Class::getSimpleName).collect(Collectors.toSet());
+        Set<String> collNames = klasses.stream().map(Class::getSimpleName).collect(Collectors.toSet());
+        Map<String, String> idFields = new HashMap<>();
 
         if(klasses.isEmpty()) throw new ModelsNotFoundException("Must have a class with @Model to use embedded database.");
 
-        klasses.forEach(klass -> collections.putIfAbsent(klass.getSimpleName(), new Collection(db.getRepository(klass), klass)));
+        klasses.forEach(klass -> {
+            String klassName = klass.getSimpleName();
+            for(Field field : klass.getDeclaredFields()) {
+                if(field.isAnnotationPresent(Id.class)) {
+                    idFields.putIfAbsent(klassName, field.getName());
+                    break;
+                }
+            }
 
-        sseWatchCollections();
-        initBrowser(klassNames);
+            collections.putIfAbsent(klassName, new Collection(db.getRepository(klass), klass, idFields.get(klassName)));
+        });
+
+        if (enableSSEwatcher) sseWatchCollections(collNames);
+        if(!disableBrowser) initBrowser(collNames, idFields);
 
         enabledDatabase = true;
         Runtime.getRuntime().addShutdownHook(new Thread(db::close));
@@ -86,9 +126,20 @@ public class Database {
     /**
      * Embedded server to browse collections locally
      */
-    private static void initBrowser(Set<String> klassNames) {
-        express.get("/rest/klassNames", (req, res) -> res.json(klassNames));
-        express.get("/rest/:coll", (req, res) -> res.json(collection(req.getParam("coll")).find()));
+    private static void initBrowser(Set<String> collNames, Map<String, String> idFields) {
+        express.get("/rest/collNames", (req, res) -> res.json(collNames));
+
+        express.get("/rest/:coll", (req, res) -> {
+            String coll = req.getParam("coll");
+            res.json(Map.of(idFields.get(coll), collection(coll).find()));
+        });
+
+        express.delete("/rest/:coll/:id", (req, res) -> {
+            String coll = req.getParam("coll");
+            String id = req.getParam("id");
+            collection(coll).deleteById(id);
+            res.send("OK");
+        });
 
         try {
             express.use(new FileInJarProvider("/browser"));
@@ -126,11 +177,12 @@ public class Database {
         }
     }
 
-    private static void sseWatchCollections() {
-        app.get("/watch-collection/:coll", (req, res) ->
-               collection(req.getParam("coll")).watch(watchData ->
-                   res.sendSSE(watchData.getEvent(), watchData.getData())
-            ));
+    private static void sseWatchCollections(Set<String> collNames) {
+        app.get("/watch-collections", (req, res) ->
+            collNames.forEach(coll ->
+                collection(coll).watch(watchData ->
+                    res.sendSSE(coll, watchData)
+        )));
     }
 
 }

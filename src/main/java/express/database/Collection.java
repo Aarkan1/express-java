@@ -24,19 +24,13 @@ import static org.dizitart.no2.objects.filters.ObjectFilters.eq;
 public class Collection {
     private final ObjectRepository repo;
     private final Class klass;
-    private String idField = null;
+    private String idField;
 
-    public Collection(ObjectRepository repo, Class klass) {
+    public Collection(ObjectRepository repo, Class klass, String idField) {
         this.repo = repo;
         this.klass = klass;
-
         // set id field name to optimise reflections
-        for(Field field : klass.getDeclaredFields()) {
-            if(field.isAnnotationPresent(Id.class)) {
-                idField = field.getName();
-                break;
-            }
-        }
+        this.idField = idField;
     }
 
     public List find() {

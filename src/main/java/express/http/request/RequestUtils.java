@@ -119,13 +119,7 @@ final class RequestUtils {
      * @param klass
      * @return converted stream as an Object
      */
-    public static Object convertBodyToObject(InputStream is, Class klass) {
-        try {
-            return objectMapper.readValue(is, klass);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return null;
+    public static <T> T convertBodyToObject(InputStream is, Class<T> klass) throws IOException {
+        return objectMapper.readValue(is, klass);
     }
 }
