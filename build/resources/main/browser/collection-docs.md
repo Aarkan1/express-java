@@ -1,5 +1,4 @@
 # Collection Documentation
-
 Collection is a server-less embedded database ideal for small web applications. It's based on the open source project [Nitrite Database](https://www.dizitart.org/nitrite-database.html).
 
 **It features:**
@@ -12,8 +11,12 @@ Collection is a server-less embedded database ideal for small web applications. 
 
 *Requires Java Express version 0.5.0 and above!*
 
+<details>
+    <summary>Show documentation</summary>
+
 ## Table of content
 - [Getting started](#getting-started)
+- [CollectionOptions](#collectionoptions)
     - [Important note!](#important-note)
 - [Annotations](#annotations)
 - [Collection methods](#collection-methods)
@@ -76,6 +79,92 @@ collection("User").watch(watchData -> {
     }
 });
 ```
+
+### CollectionOptions
+CollectionOptions can be passed when enabling collections to set certain options.
+Options available are:
+- *CollectionOptions.ENABLE_SSE_WATCHER* - Enables Server Side Events listener on collection changes
+- *CollectionOptions.DISABLE_BROWSER* - Disables collection browser (good when deploying)
+
+You can pass one or multiple options when enabling collections:
+```java
+Express app = new Express();
+app.enableCollections(CollectionOptions.ENABLE_SSE_WATCHER, CollectionOptions.DISABLE_BROWSER);
+```
+
+**ENABLE_SSE_WATCHER**
+
+This starts an event stream endpoint in the database that will send a Server Side Event when a change happens.
+
+To listen to these events on the client you have to create a connection to `'/watch-collections'` with an `EventSource`.
+
+```js
+let colls = new EventSource('/watch-collections')
+```
+
+With the eventSource you can add listeners to each model in the collection.
+
+```js
+// listen to changes to the 'BlogPost' collection 
+colls.addEventListener('BlogPost', (messageEvent) => {
+    // handle event
+}
+
+// listen to changes to the 'Message' collection 
+colls.addEventListener('Message', (messageEvent) => {
+    // handle event
+});
+```
+
+#### Examples
+
+Java:
+```java
+Express app = new Express();
+app.enableCollections(CollectionOptions.ENABLE_SSE_WATCHER);
+```
+
+JavaScript:
+```js
+let colls = new EventSource('/watch-collections');
+
+colls.addEventListener('BlogPost', (messageEvent) => {
+    const { event, data } = JSON.parse(messageEvent.data);
+    console.log("BlogPost event:", event, data);
+
+    switch(event) {
+        case 'insert':
+            // add new post to list
+            posts.push(data[0]);
+        break;
+        case 'update':
+            // do something on update
+        break;
+        case 'delete':
+            // remove deleted post from list
+            posts = posts.filter(post => post.id !== data[0].id);
+        break;
+    }
+
+    // update 
+    renderPosts();
+});
+
+colls.addEventListener('Message', (messageEvent) => {
+    const { event, data } = JSON.parse(messageEvent.data);
+    console.log('Message event:', event, data);
+});
+```
+
+**DISABLE_BROWSER**
+
+This will simple disable the collection browser. This might be a good idea to save CPU and RAM when deploying. 
+
+```java
+Express app = new Express();
+app.enableCollections(CollectionOptions.DISABLE_BROWSER);
+```
+
 
 ### Important note!
 After a model is saved to the collection, the class with **@Model** annotation **CANNOT** be moved to another package or renamed. This will corrupt the database-file, and will have to be removed. 
@@ -320,3 +409,5 @@ collection("User").find(text("address", "11a* road"));
 // matches all models where 'name' value starts with 'jim' or 'joe'.
 collection("User").find(regex("name", "^(jim|joe).*"));
 ```
+
+</details>

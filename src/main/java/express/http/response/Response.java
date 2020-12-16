@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
-import express.database.WatchData;
 import express.http.Cookie;
 import express.utils.MediaType;
 import express.utils.Status;
@@ -128,6 +127,21 @@ public class Response {
         send();
     }
 
+
+    /**
+     * @return The content length
+     */
+    public long getContentLength() {
+        return contentLength;
+    }
+
+    /**
+     * @return The raw exchange object
+     */
+    public HttpExchange getRaw() {
+        return httpExchange;
+    }
+
     /**
      * @return The current contentType
      */
@@ -154,33 +168,30 @@ public class Response {
     }
 
     /**
+     * Close ongoing Server Side Event to enable client reconnect
+     */
+    public void reconnectSSE() {
+        try {
+            this.body.close();
+            this.isClose = true;
+        } catch (IOException ignore) { }
+    }
+
+    /**
      * Server Side Event to push data to the client
      *
      * @param event - The event client listens to
      * @param data - The data to push to client
      */
-    public void sendSSE(String event, String data) {
+    public void send(String event, String data) {
         if (isClosed()) return;
-
-        setStatus(Status._200);
-        setContentType("text/event-stream");
-        setHeader("Cache-Control", "no-cache");
-        setHeader("Connection", "keep-alive");
-
         String message = "event: " + event + "\n" + "data: " + data + "\n\n";
-
-        try {
-            // Set header and send response
-            this.headers.set("Content-Type", contentType);
-            this.httpExchange.sendResponseHeaders(status, contentLength);
-        } catch (IOException ignore) { }
-
         try {
             this.body.write(message.getBytes());
             this.body.flush();
-        } catch (IOException ignore) {
+        } catch (IOException disconnected) {
             // client disconnected
-            closeSSE();
+            reconnectSSE();
         }
     }
 
@@ -190,24 +201,14 @@ public class Response {
      * @param event - The event client listens to
      * @param data - The data object to push to client as json
      */
-    public void sendSSE(String event, Object data) {
+    public void send(String event, Object data) {
         if (isClosed()) return;
         try {
-            sendSSE(event, objectMapper.writeValueAsString(data));
+            send(event, objectMapper.writeValueAsString(data));
         } catch (JsonProcessingException e) {
             logger.log(Level.INFO, "Failed to send event stream.", e);
-            sendSSE("error", e.getMessage());
+            send("error", e.getMessage());
         }
-    }
-
-    /**
-     * Close ongoing Server Side Event to enable client reconnect
-     */
-    public void closeSSE() {
-        try {
-            this.body.close();
-            this.isClose = true;
-        } catch (IOException ignore) { }
     }
 
     /**

@@ -19,17 +19,18 @@ export default {
             <p><em>Requires Java Express version 0.5.0 and above!</em></p>
             <h2 id="table-of-content">Table of content</h2>
             <ul>
-            <li><a href="#getting-started">Getting started</a><ul>
-            <li><a href="#important-note">Important note!</a></li>
-            </ul>
-            </li>
-            <li><a href="#annotations">Annotations</a></li>
-            <li><a href="#collection-methods">Collection methods</a><ul>
-            <li><a href="#filters">Filters</a></li>
-            <li><a href="#findoptions">FindOptions</a></li>
-            </ul>
-            </li>
-            <li><a href="#examples">Examples</a></li>
+                <li><a href="#getting-started">Getting started</a></li>
+                <li><a href="#collectionoptions">CollectionOptions</a></li>
+                <ul>
+                    <li><a href="#important-note">Important note!</a></li>
+                </ul>
+                <li><a href="#annotations">Annotations</a></li>
+                <li><a href="#collection-methods">Collection methods</a></li>
+                <ul>
+                    <li><a href="#filters">Filters</a></li>
+                    <li><a href="#findoptions">FindOptions</a></li>
+                </ul>
+                <li><a href="#examples">Examples</a></li>
             </ul>
             <h2 id="getting-started">Getting started</h2>
             <p>The Express app has an embedded nosql database, ready to be used if you enable it by adding <code>app.enableCollections()</code> right after app is instantiated. 
@@ -85,6 +86,74 @@ collection(<span class="hljs-string">"User"</span>).watch(watchData -&gt; {
     }
 });
             </code></pre>
+            <h3 id="collectionoptions">CollectionOptions</h3>
+<p>CollectionOptions can be passed when enabling collections to set certain options.
+Options available are:</p>
+<ul>
+<li><em>CollectionOptions.ENABLE_SSE_WATCHER</em> - Enables Server Side Events listener on collection changes</li>
+<li><em>CollectionOptions.DISABLE_BROWSER</em> - Disables collection browser (good when deploying)</li>
+</ul>
+<p>You can pass one or multiple options when enabling collections:</p>
+<pre><code class="lang-java"><span class="hljs-type">Express</span> app = <span class="hljs-function"><span class="hljs-keyword">new</span> <span class="hljs-title">Express</span>();
+<span class="hljs-title">app</span>.<span class="hljs-title">enableCollections</span>(<span class="hljs-type">CollectionOptions</span>.<span class="hljs-type">ENABLE_SSE_WATCHER</span>, <span class="hljs-type">CollectionOptions</span>.<span class="hljs-type">DISABLE_BROWSER</span>);</span>
+</code></pre>
+<p><strong>ENABLE_SSE_WATCHER</strong></p>
+<p>This starts an event stream endpoint in the database that will send a Server Side Event when a change happens.</p>
+<p>To listen to these events on the client you have to create a connection to <code>&#39;/watch-collections&#39;</code> with an <code>EventSource</code>.</p>
+<pre><code class="lang-js"><span class="hljs-keyword">let</span> colls = <span class="hljs-keyword">new</span> EventSource(<span class="hljs-string">'/watch-collections'</span>)
+</code></pre>
+<p>With the eventSource you can add listeners to each model in the collection.</p>
+<pre><code class="lang-js"><span class="hljs-regexp">//</span> listen to changes to the <span class="hljs-string">'BlogPost'</span> collection 
+colls.addEventListener(<span class="hljs-string">'BlogPost'</span>, <span class="hljs-function"><span class="hljs-params">(messageEvent)</span> =&gt;</span> {
+    <span class="hljs-regexp">//</span> handle event
+}
+
+<span class="hljs-regexp">//</span> listen to changes to the <span class="hljs-string">'Message'</span> collection 
+colls.addEventListener(<span class="hljs-string">'Message'</span>, <span class="hljs-function"><span class="hljs-params">(messageEvent)</span> =&gt;</span> {
+    <span class="hljs-regexp">//</span> handle event
+});
+</code></pre>
+<h4>Examples</h4>
+<p>Java:</p>
+<pre><code class="lang-java"><span class="hljs-type">Express</span> app = <span class="hljs-function"><span class="hljs-keyword">new</span> <span class="hljs-title">Express</span>();
+<span class="hljs-title">app</span>.<span class="hljs-title">enableCollections</span>(<span class="hljs-type">CollectionOptions</span>.<span class="hljs-type">ENABLE_SSE_WATCHER</span>);</span>
+</code></pre>
+<p>JavaScript:</p>
+<pre><code class="lang-js"><span class="hljs-keyword">let</span> colls = <span class="hljs-keyword">new</span> EventSource(<span class="hljs-string">'/watch-collections'</span>);
+
+colls.addEventListener(<span class="hljs-string">'BlogPost'</span>, (messageEvent) =&gt; {
+    <span class="hljs-keyword">const</span> { event, data } = <span class="hljs-built_in">JSON</span>.parse(messageEvent.data);
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"BlogPost event:"</span>, event, data);
+
+    <span class="hljs-keyword">switch</span>(event) {
+        <span class="hljs-keyword">case</span> <span class="hljs-string">'insert'</span>:
+            <span class="hljs-comment">// add new post to list</span>
+            posts.push(data[<span class="hljs-number">0</span>]);
+        <span class="hljs-keyword">break</span>;
+        <span class="hljs-keyword">case</span> <span class="hljs-string">'update'</span>:
+            <span class="hljs-comment">// do something on update</span>
+        <span class="hljs-keyword">break</span>;
+        <span class="hljs-keyword">case</span> <span class="hljs-string">'delete'</span>:
+            <span class="hljs-comment">// remove deleted post from list</span>
+            posts = posts.filter(<span class="hljs-function"><span class="hljs-params">post</span> =&gt;</span> post.id !== data[<span class="hljs-number">0</span>].id);
+        <span class="hljs-keyword">break</span>;
+    }
+
+    <span class="hljs-comment">// update </span>
+    renderPosts();
+});
+
+colls.addEventListener(<span class="hljs-string">'Message'</span>, (messageEvent) =&gt; {
+    <span class="hljs-keyword">const</span> { event, data } = <span class="hljs-built_in">JSON</span>.parse(messageEvent.data);
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'Message event:'</span>, event, data);
+});
+</code></pre>
+<p><strong>DISABLE_BROWSER</strong></p>
+<p>This will simple disable the collection browser. This might be a good idea to save CPU and RAM when deploying. </p>
+<pre><code class="lang-java"><span class="hljs-type">Express</span> app = <span class="hljs-function"><span class="hljs-keyword">new</span> <span class="hljs-title">Express</span>();
+<span class="hljs-title">app</span>.<span class="hljs-title">enableCollections</span>(<span class="hljs-type">CollectionOptions</span>.<span class="hljs-type">DISABLE_BROWSER</span>);</span>
+</code></pre>
+
             <div class="important-div">
                 <h3 id="important-note">Important note!</h3>
                 <p>After a model is saved to the collection, the class with <strong>@Model</strong> annotation <strong>CANNOT</strong> be moved to another package or renamed. This will corrupt the database-file, and will have to be removed. 

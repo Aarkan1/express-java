@@ -147,7 +147,7 @@ public class Database {
             e.printStackTrace();
         }
 
-        express.listen(() -> System.out.println("\nBrowse collections: \thttp://localhost:9595\n\n"), 9595);
+        express.listen(() -> System.out.println("\nBrowse collections: \thttp://localhost:9595"), 9595);
     }
 
     public void closeBrowser() {
@@ -178,10 +178,10 @@ public class Database {
     }
 
     private static void sseWatchCollections(Set<String> collNames) {
-        app.get("/watch-collections", (req, res) ->
+        app.sse("/watch-collections", (req, res) ->
             collNames.forEach(coll ->
                 collection(coll).watch(watchData ->
-                    res.sendSSE(coll, watchData)
+                    res.send(coll, watchData)
         )));
     }
 

@@ -63,14 +63,20 @@ dependencies {
 * [HTTP Relevant classes](#http-relevant-classes)
    * [Response Object](#response-object)
    * [Request Object](#request-object)
+* [Embedded database - Collections](#embedded-database---collections)
 * [Middleware](#middleware)
    * [Create own middleware](#create-own-middleware)
 * [Using global variables](#global-variables)
-* [License](#license)
 * [Examples](#examples)
+   * Very simple static-website
+   * CRUD with embedded Collection database
+   * File upload
+   * Send cookies 
+   * File download
 * [Router code splitting](#router-code-splitting)
    * [With Router](#with-router)
    * [DynExpress](#dynexpress)
+* [License](#license)
 
 ## Routing
 ### Direct
@@ -118,6 +124,9 @@ app.post("/login", (req, res) -> {
 });
 ```
 
+<details>
+    <summary>Show documentation</summary>
+
 ### URL Parameter
 Sometimes you want to create dynamic URL where some parts of the URL's are not static.
 With the `:` operator you can create variables in the URL which will be saved later in a HashMap.
@@ -159,8 +168,13 @@ app.get("/posts", (req, res) -> {
 });
 ```
 
+</details>
+
 ## Cookies
 With `req.getCookie(NAME)` you can get an cookie by his name, and with `res.setCookie(NAME, VALUE)` you can easily set an cookie.
+
+<details>
+    <summary>Show examples</summary>
 
 Example request: `GET`  `/setcookie`:
 ```java
@@ -180,17 +194,24 @@ app.get("/showcookie", (req, res) -> {
 });
 ```
 
+</details>
+
 ## Server Side Events
-`res.sendSSE(EVENT, DATA)` takes the event as a String, and data as a String or an Object. The object will be converted to json before sending to clients. 
+With `app.sse()`
+
+<details>
+    <summary>Show documentation</summary>
+
+`res.send(EVENT, DATA)` takes the event as a String, and data as a String or an Object. The object will be converted to json before sending to clients. 
 If you want use SSE (Server Side Events) you'll have to create an endpoint for the client to connect to, for example in JavaScript via `new EventSource('/sse-endpoint')`. 
-Closing the SSE with `res.closeSSE()` will force the client to reconnect. If `res.closeSSE()` doesn't get called the SSE will stay connected and `res.sendSSE()` can be used multiple times before closing.
+Closing the SSE with `res.reconnectSSE()` will force the client to reconnect. If `res.reconnectSSE()` doesn't get called the SSE will stay connected and `res.send(EVENT, DATA)` can be used multiple times before closing.
 
 Example Java:
 ```java
-app.get("/sse-endpoint", (req, res) -> {
+app.sse("/sse-endpoint", (req, res) -> {
    for(int i = 0; i < 20; i++) {
 
-      res.sendSSE("testEvent", "Test nr: " + i);
+      res.send("testEvent", "Test nr: " + i);
 
       try {
             Thread.sleep(1000);
@@ -199,7 +220,7 @@ app.get("/sse-endpoint", (req, res) -> {
       }
    }
 
-   res.closeSSE(); // this will close the event-stream, forcing the client to reconnect
+   res.reconnectSSE(); // this will close the event-stream, forcing the client to reconnect
 });
 ```
 
@@ -221,9 +242,15 @@ testSource.addEventListener('testEvent', (event) => {
 });
 ```
 
+</details>
+
 ### Form data
 With `req.getFormData(NAME)` you receive a list of FileItems from the posted FormData.
 `req.getFormData()` without a param will return a Map, where key is the field name and value the list of FileItems.
+
+<details>
+    <summary>Show available methods</summary>
+
 Example JavaScript:
 ```js
 let files = document.querySelector('input[type=file]').files;
@@ -257,7 +284,11 @@ app.post("/api/file-upload", (req, res) -> {
 ```
 
 ### FileItem Object
-From `req.getFormData(NAME)` you get a list of FileItems. Here are some commonly used methods.
+From `req.getFormData(NAME)` you get a list of FileItems. 
+
+<details>
+    <summary>Show fileItem methods</summary>
+
 ```java
 fileItem.get();                  // Returns the file byte[] array
 fileItem.getName();              // Returns the file name
@@ -269,6 +300,8 @@ fileItem.getInputStream();       // Returns the file inputstream
 fileItem.getOutputStream();      // Returns the file outputstream
 fileItem.getSize();              // Returns the form data size
 ```
+
+</details>
 
 With `req.getFormQuery(NAME)` you receive the values from the input elements of an HTML-Form.
 Example HTML-Form:
@@ -294,9 +327,15 @@ app.post("/register", (req, res) -> {
 });
 ```
 
+</details>
+
 ## HTTP Relevant classes
 ### Express
-This class represents the entire HTTP-Server, the available methods are:
+This class represents the entire HTTP-Server. 
+
+<details>
+    <summary>Show available methods</summary>
+
 ```java
 app.get(String context, HttpRequest handler);                   // Add an GET request handler
 app.post(String context, HttpRequest handler);                  // Add an POST request handler
@@ -312,27 +351,36 @@ app.use(String context, HttpRequest handler);                   // Add an middle
 app.use(String context, ExpressRouter router);                  // Add an router for an specific root context
 app.use(ExpressRouter router);                                  // Add an router for the root context (/)
 app.onParam(String name, HttpRequest handler);                  // Add an listener for an specific url parameter
+app.sse(String context, HttpRequest handler);                   // Add an handler for Server Side Events
 app.getParameterListener();                                     // Returns all parameterlistener
 app.get(String key);                                            // Get an environment variable
 app.set(String key, String val);                                // Set an environment variable
 app.isSecure();                                                 // Check if the server uses HTTPS
 app.setExecutor(Executor executor);                             // Set an executor service for the request
+app.enableCollections();                                        // Enables the embedded document database
+app.enableCollections(CollectionOptions options);               // Enables the database with options
 app.listen();                                                   // Start the async server on port 80
 app.listen(ExpressListener onstart);                            // Start the async server on port 80, call the listener after starting
 app.listen(int port);                                           // Start the async server on an specific port
 app.listen(ExpressListener onstart, int port);                  // Start the async server on an specific port call the listener after starting
 app.stop();                                                     // Stop the server and all middleware worker
-app.enableDatabase();                                           // Enables the embedded document database
 ```
 
+</details>
+
 ### Response Object
-With the `Response` object, you have several possibility like setting cookies, send an file and more. Below is an short explanation what methods exists:
+With the `Response` object, you have several possibility like setting cookies, send an file and more.
 (We assume that `res` is the `Response` object)
+
+<details>
+    <summary>Show response methods</summary>
 
 ```java
 res.getContentType();                  // Returns the current content type
 res.setContentType(MediaType type);    // Set the content type with enum help
 res.setContentType(String type);       // Set the content type
+res.getContentLength();                // Returns the content length
+res.getRaw();                          // Returns the raw HttpExchange object
 res.isClosed();                        // Check if the response is already closed
 res.getHeader(String key);             // Get the value from an header field via key
 res.setHeader(String key, String val); // Add an specific response header
@@ -341,21 +389,26 @@ res.send(String str);                  // Send a string as response
 res.send(Path path);                   // Send a file as response
 res.send(byte[] bytes)                 // Send bytes as response
 res.send();                            // Send empty response
-res.json(Object object);               // Send object as JSON response
-res.sendSSE(String event, String data);// Send a server side event message to target listener
-res.sendSSE(String event, Object data);// Send a server side event object as json to target listener
-res.closeSSE();                        // Close the ongoing server side event session (note: client will automatically reconnect after 3 seconds)
+res.send(String event, String data);   // Send a server side event message to target listener
+res.send(String event, Object data);   // Send a server side event object as json to target listener
+res.reconnectSSE();                    // Close the ongoing server side event session (note: client will automatically reconnect after 3 seconds)
 res.redirect(String location);         // Redirect the request to another url
 res.setCookie(Cookie cookie);          // Add an cookie to the response
 res.sendStatus(Status status);         // Set the response status and send an empty response
 res.getStatus();                       // Returns the current status
 res.setStatus(Status status);          // Set the repose status
 res.streamFrom(long contentLength, InputStream is, MediaType mediaType) // Send a inputstream with known length and type
+res.json(Object object);               // Send object as JSON response
 ```
 The response object calls are comments because **you can only call the .send(xy) once each request!**
 
+</details>
+
 ### Request Object
 With the `Request` object you have access to several request stuff (We assume that `req` is the `Request` object):
+
+<details>
+    <summary>Show request methods</summary>
 
 ```java
 req.getAddress();                 // Returns the INET-Adress from the client
@@ -395,8 +448,447 @@ req.getBodyStream();              // Returns the request inputstream
 req.getBody(Class klass);         // Returns the request object as target class
 ```
 
+</details>
+
+## Embedded database - Collections
+Collection is a server-less embedded database ideal for small web applications. It's based on the open source project [Nitrite Database](https://www.dizitart.org/nitrite-database.html).
+
+This database is a built in feature in Java Express, and available to use with a simple `app.enableCollections()`.
+
+**It features:**
+- Embedded key-value object store
+- Single file store
+- Very fast and lightweight MongoDB like API
+- Indexing
+- Full text search capability
+- Observable store
+
+*Requires Java Express version 0.5.0 and above!*
+
+See [Examples](#examples) for an example of *CRUD with embedded Collection database*.
+
+<details>
+    <summary>Show documentation</summary>
+
+## Table of content
+- [Getting started](#getting-started)
+- [CollectionOptions](#collectionoptions)
+    - [Important note!](#important-note)
+- [Browse Collections](#browse-collections)
+- [Annotations](#annotations)
+- [Collection methods](#collection-methods)
+    - [Filters](#filters)
+    - [FindOptions](#findoptions)
+- [Examples](#examples)
+
+## Getting started
+The Express app has an embedded nosql database, ready to be used if you enable it by adding `app.enableCollections()` right after app is instantiated. 
+This will create a database-file in your project. Easy to deploy or share.
+When collections are enabled you can use the static `collection()`-method to manipulate the database. 
+**collection()** takes either a String with the classname, case sensitive, or the Class itself. 
+
+```java
+import static express.database.Database.collection;
+
+Express app = new Express();
+// creates a database-file in /db-folder called 'embedded.db'
+app.enableCollections(); 
+// creates the file at target path
+app.enableCollections(String dbPath); 
+
+
+User john = new User("John").
+// generates an UUID
+collection("User").save(john); 
+
+User jane = collection("User").findById("xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx");
+
+jane.setAge(30);
+// updates model with same UUID
+collection("User").save(jane); 
+
+// delete Jane
+collection("User").deleteById("xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx"); 
+
+List<User> users = collection("User").find();
+List<User> users = collection(User.class).find();
+
+List<User> usersNamedJohn = collection("User").find(eq("name", "John"));
+```
+
+Watch a collection on changes
+```java
+// watchData has 2 fields. 
+// getEvent() is the event triggered - 'insert', 'update' or 'delete'
+// getData() is a list with effected models
+collection("User").watch(watchData -> {
+    List<User> effectedUsers = watchData.getData();
+
+    switch(watchData.getEvent()) {
+        case "insert": // on created model
+        break;
+
+        case "update": // on updated model
+        break;
+
+        case "delete": // on deleted model
+        break;
+    }
+});
+```
+
+### CollectionOptions
+CollectionOptions can be passed when enabling collections to set certain options.
+Options available are:
+- *CollectionOptions.ENABLE_SSE_WATCHER* - Enables Server Side Events listener on collection changes
+- *CollectionOptions.DISABLE_BROWSER* - Disables collection browser (good when deploying)
+
+You can pass one or multiple options when enabling collections:
+```java
+Express app = new Express();
+app.enableCollections(CollectionOptions.ENABLE_SSE_WATCHER, CollectionOptions.DISABLE_BROWSER);
+```
+
+**ENABLE_SSE_WATCHER**
+
+This starts an event stream endpoint in the database that will send a Server Side Event when a change happens.
+
+To listen to these events on the client you have to create a connection to `'/watch-collections'` with an `EventSource`.
+
+```js
+let colls = new EventSource('/watch-collections')
+```
+
+With the eventSource you can add listeners to each model in the collection.
+
+```js
+// listen to changes to the 'BlogPost' collection 
+colls.addEventListener('BlogPost', (messageEvent) => {
+    // handle event
+});
+
+// listen to changes to the 'Message' collection 
+colls.addEventListener('Message', (messageEvent) => {
+    // handle event
+});
+```
+
+#### Example
+
+Java:
+```java
+Express app = new Express();
+app.enableCollections(CollectionOptions.ENABLE_SSE_WATCHER);
+```
+
+JavaScript:
+```js
+let colls = new EventSource('/watch-collections');
+
+colls.addEventListener('BlogPost', (messageEvent) => {
+    const { event, data } = JSON.parse(messageEvent.data);
+    console.log("BlogPost event:", event, data);
+
+    switch(event) {
+        case 'insert':
+            // add new post to list
+            posts.push(data[0]);
+        break;
+        case 'update':
+            // do something on update
+        break;
+        case 'delete':
+            // remove deleted post from list
+            posts = posts.filter(post => post.id !== data[0].id);
+        break;
+    }
+
+    // update 
+    renderPosts();
+});
+
+colls.addEventListener('Message', (messageEvent) => {
+    const { event, data } = JSON.parse(messageEvent.data);
+    console.log('Message event:', event, data);
+});
+```
+
+**DISABLE_BROWSER**
+
+This will simple disable the collection browser. This might be a good idea to save CPU and RAM when deploying. 
+
+```java
+Express app = new Express();
+app.enableCollections(CollectionOptions.DISABLE_BROWSER);
+```
+
+
+### Important note!
+After a model is saved to the collection, the class with **@Model** annotation **CANNOT** be moved to another package or renamed. This will corrupt the database-file, and will have to be removed. 
+Keep backups!
+
+Changing the name of a field will not corrupt the database, but will remove the value from all models.
+
+
+## Browse Collections
+When collections is enabled the Collection Browser by default gets accessible in your webb browser on url `http://localhost:9595`.
+This URL is protected by CORS. 
+
+This can be disabled with `CollectionOptions.DISABLE_BROWSER` option.
+
+Currently the Collection Browser only supports:
+* Viewing models in a collection
+* Deleting a model from a collection
+
+*Features coming in near future:*
+- *Be able to update a field in a model*
+- *Be able to import data with .json-file*
+- *Pagination on large collections*
+
+## Annotations
+For the collections to work the following two annotations must be present in at least one class.
+
+### @Model Annotation
+Marks a class to be used with a collection. Is required if an object is going to be saved to the collection.
+
+### @Id Annotation
+Each object in a Collection must be uniquely identified by a field marked with **@Id** annotation. The collection maintains an unique index on that field to identify the objects.
+If no id is manually set, the Collection will generate an UUID to that field when inserted or saved. 
+
+```java
+import express.database.Model;
+import org.dizitart.no2.objects.Id;
+
+@Model
+public class MyType {
+
+    @Id
+    private String id;
+    private String name;
+}
+```
+
+The collection provides a set of annotations for model objects while using it in a collection. The annotations are to let the collection know about various information about the **model** while constructing it. It also helps to reduce some boilerplate code.
+
+**@Index** is required to do **text()** or **regex()** filtering on a field. It can only be used within a **@Indices** annotation.
+**Index types are:**
+- IndexType.Unique - used with unique fields
+- IndexType.NonUnique - used with single value duplicate fields
+- IndexType.FullText - used with multiple word fields, NonUnique
+
+Example
+```java
+// Employee class
+@Indices({
+        @Index(value = "joinDate", type = IndexType.NonUnique),
+        @Index(value = "name", type = IndexType.Unique)
+})
+@Model
+public class Employee {
+    @Id
+    private String id;
+    private Date joinDate;
+    private String name;
+    private String address;
+
+    // ... public getters and setters
+}
+```
+
+## Collection methods
+
+To use the collection you need to add which model to query for in the collection parameter, ex `collection("User")` will only query for Users. 
+
+**Table 1. Collection methods**
+
+| Operation | Method | Description |
+| --- | --- | --- |
+| Get all models | find(Filter, SortOptions) | Returns a list with objects. If no filter is used find() will return ALL models. |
+| Get one model | findOne(Filter) | Returns first found model. |
+| Get model with id | findById(String) | Returns the object with mathing id. |
+| Create new model | insert(Object) | Creates a new model in the collection. Generates an UUID if no id is present. Can insert an array of models. |
+| Create or Update a model | save(Object) | Creates a new model in the collection if no id is present. If theres an id save() will update the existing model in the collection. Can save an array of models. |
+| Update models | update(Filter, Object) | Update all models matching the filter. |
+| Update a model with id | updateById(String) | Updates the model with matching id. |
+| Delete models | delete(Filter) | Deletes all models matching the filter. |
+| Delete a model with id | deleteById(String) | Deletes the model with matching id. |
+| Watch a collection | watch(lambda) | Register a watcher that triggers on changes in the collection. |
+
+
+### Filters
+
+Filters are the selectors in the collection’s find operation. It matches models in the collection depending on the criteria provided and returns a list of objects.
+
+Make sure you import the static method **ObjectFilters**.
+
+```java
+import static org.dizitart.no2.objects.filters.ObjectFilters.*;
+```
+
+**Table 2. Comparison Filter**
+
+| Filter | Method | Description |
+| --- | --- | --- |
+| Equals | eq(String, Object) | Matches values that are equal to a specified value. |
+| Greater | gt(String, Object) | Matches values that are greater than a specified value. |
+| GreaterEquals | gte(String, Object) | Matches values that are greater than or equal to a specified value. |
+| Lesser | lt(String, Object) | Matches values that are less than a specified value. |
+| LesserEquals | lte(String, Object) | Matches values that are less than or equal to a specified value. |
+| In | in(String, Object[]) | Matches any of the values specified in an array. |
+| NotIn | notIn(String, Object[]) | Matches none of the values specified in an array. |
+
+**Table 3. Logical Filters**
+
+| Filter | Method | Description |
+| --- | --- | --- |
+| Not | not(Filter) | Inverts the effect of a filter and returns results that do not match the filter. |
+| Or | or(Filter[]) | Joins filters with a logical OR returns all ids of the models that match the conditions of either filter. |
+| And | and(Filter[]) | Joins filters with a logical AND returns all ids of the models that match the conditions of both filters. |
+
+**Table 4. Array Filter**
+
+| Filter | Method | Description |
+| --- | --- | --- |
+| Element Match | elemMatch(String, Filter) | Matches models that contain an array field with at least one element that matches the specified filter. |
+
+**Table 5. Text Filters**
+*Note*: For these filters to work the field must be indexed. See [Annotations](#annotations)
+
+| Filter | Method | Description |
+| --- | --- | --- |
+| Text | text(String, String) | Performs full-text search. |
+| Regex | regex(String, String) | Selects models where values match a specified regular expression. |
+
+### FindOptions
+
+A FindOptions is used to specify search options. It provides pagination as well as sorting mechanism.
+
+```java
+import static org.dizitart.no2.FindOptions.*;
+```
+
+Example
+```java
+// sorts all models by age in ascending order then take first 10 models and return as a List
+List<User> users = collection("User").find(sort("age", SortOrder.Ascending).thenLimit(0, 10));
+```
+```java
+// sorts the models by age in ascending order
+List<User> users = collection("User").find(sort("age", SortOrder.Ascending));
+```
+```java
+// sorts the models by name in ascending order with custom collator
+List<User> users = collection("User").find(sort("name", SortOrder.Ascending, Collator.getInstance(Locale.FRANCE)));
+```
+```java
+// fetch 10 models starting from offset = 2
+List<User> users = collection("User").find(limit(2, 10));
+```
+
+## Filter examples
+
+**and()**
+```java
+// matches all models where 'age' field has value as 30 and
+// 'name' field has value as John Doe
+collection("User").find(and(eq("age", 30), eq("name", "John Doe")));
+```
+
+**or()**
+```java
+// matches all models where 'age' field has value as 30 or
+// 'name' field has value as John Doe
+collection("User").find(or(eq("age", 30), eq("name", "John Doe")));
+```
+
+**not()**
+```java
+// matches all models where 'age' field has value not equals to 30
+collection("User").find(not(eq("age", 30)));
+```
+
+**eq()**
+```java
+// matches all models where 'age' field has value as 30
+collection("User").find(eq("age", 30));
+```
+
+**gt()**
+```java
+// matches all models where 'age' field has value greater than 30
+collection("User").find(gt("age", 30));
+```
+
+**gte()**
+```java
+// matches all models where 'age' field has value greater than or equal to 30
+collection("User").find(gte("age", 30));
+```
+
+**lt()**
+```java
+// matches all models where 'age' field has value less than 30
+collection("User").find(lt("age", 30));
+```
+
+**lte()**
+```java
+// matches all models where 'age' field has value lesser than or equal to 30
+collection("User").find(lte("age", 30));
+```
+
+**in()**
+```java
+// matches all models where 'age' field has value in [20, 30, 40]
+collection("User").find(in("age", 20, 30, 40));
+```
+
+**notIn()**
+```java
+// matches all models where 'age' field does not have value in [20, 30, 40]
+collection("User").find(notIn("age", 20, 30, 40));
+```
+
+**elemMatch()**
+```java
+// matches all models which has an array field - 'color' and the array
+// contains a value - 'red'.
+collection("User").find(elemMatch("color", eq("$", "red"));
+```
+
+**text()**
+```java
+// matches all models where 'address' field has a word 'roads'.
+collection("User").find(text("address", "roads"));
+
+// matches all models where 'address' field has word that starts with '11A'.
+collection("User").find(text("address", "11a*"));
+
+// matches all models where 'address' field has a word that ends with 'Road'.
+collection("User").find(text("address", "*road"));
+
+// matches all models where 'address' field has a word that contains a text 'oa'.
+collection("User").find(text("address", "*oa*"));
+
+// matches all models where 'address' field has words like '11a' and 'road'.
+collection("User").find(text("address", "11a road"));
+
+// matches all models where 'address' field has word 'road' and another word that start with '11a'.
+collection("User").find(text("address", "11a* road"));
+```
+
+**regex()**
+```java
+// matches all models where 'name' value starts with 'jim' or 'joe'.
+collection("User").find(regex("name", "^(jim|joe).*"));
+```
+
+</details>
+
 # Middleware
-Middleware are one of the most important features of JavaExpress, with middleware you can handle a request before it reaches any other request handler. To create an own middleware you have serveral interfaces:
+Middleware are one of the most important features of JavaExpress, with middleware you can handle a request before it reaches any other request handler. 
+
+To create an own middleware you have serveral interfaces:
 * `HttpRequest`  - Is **required** to handle an request.
 * `ExpressFilter` - Is **required** to put data on the request listener.
 * `ExpressFilterTask` - Can be used for middleware which needs an background thread.
@@ -426,7 +918,12 @@ app.use("/home", "*", (req, res) -> {
 ```
 ## Create own middleware
 
-Now we take a look how we can create own middlewares. Here we create an simple PortParser which parse / extract the port-number for us. We only used `HttpRequest` and `ExpressFilter` because we don't need any background thread.
+Now we take a look how we can create own custom middlewares. 
+
+<details>
+    <summary>Show documentation</summary>
+
+Here we create an simple PortParser which parse / extract the port-number for us. We only used `HttpRequest` and `ExpressFilter` because we don't need any background thread.
 ```java
 public class PortMiddleware implements HttpRequest, ExpressFilter {
 
@@ -481,11 +978,16 @@ app.get("/port-test", (req, res) -> {
 });
 ```
 
+</details>
+
 ## Existing Middlewares
 There are already some basic middlewares included, you can access these via static methods provided from `Middleware`.
 
+<details>
+    <summary>Show available middlewares</summary>
+
 #### CORS
-To realize a cors api yu can use the cors middleware.
+To realize a cors api you can use the cors middleware.
 ```java
 app.use(Middleware.cors());
 ```
@@ -560,8 +1062,14 @@ Send an info message
    res.send("You take use of your session cookie " + count + " times.");
 });
 ```
+
+</details>
+
 ### Global Variables
-Java-express also supports to save and read global variables over the Express instance:
+Java Express also supports to save and read global variables over the Express instance.
+Endpoint calls is handled on separate threads, and accessing variables outside the handler might trigger race conditions. 
+With `app` you get a secure holder for global variables, that is thread-safe.
+
 Example:
 ```java
 app.set("my-data", "Hello World");
@@ -569,67 +1077,210 @@ app.get("my-data"); // Returns "Hello World"
 ```
 
 ## Examples
+- Very simple static-website
+- CRUD with embedded Collection database
+- File upload
+- Send cookies 
+- File download
+
+<details>
+    <summary>Show examples</summary>
+
 #### Very simple static-website
 ```java
-
 // Create instance
-new Express() {{
-  
-  // Define middleware-route for static site
-  use("/", Middleware.statics("my-website-folder/"));
-}};
+Express app = new Express();
+
+// will serve both the html/css/js files and the uploads folder in target directory
+try {
+   app.use(Middleware.statics(Paths.get("src/www").toString()));
+} catch (IOException e) {
+   e.printStackTrace();
+}
+
+app.listen(4000); // start server on port 4000
+```
+#### CRUD with embedded Collection database
+```java
+// Create instance
+Express app = new Express();
+// Enable collections before handlers
+app.enableCollections();
+
+// Get all articles
+app.get("/articles", (req, res) -> {
+   List<Article> articles = collection("Article").find();
+   res.json(articles);
+});
+
+// Get article with id param
+app.get("/articles/:id", (req, res) -> {
+   String articleId = req.getParam("id");
+   Article article = collection("Article").findById(articleId);
+   res.json(article);
+});
+
+// Create new article or update existing if existing 'id' is present,
+// and return same article with generated 'id' if it wasn't present
+app.post("/articles", (req, res) -> {
+   Article article = req.getBody(Article.class);
+   Article articleWithGeneratedId = collection("Article").save(article);
+   res.json(articleWithGeneratedId);
+});
+
+// Delete article with id param
+app.delete("/articles/:id", (req, res) -> {
+   String articleId = req.getParam("id");
+   int affectCount = collection("Article").deleteById(articleId);
+
+   if(affectCount > 0) {
+      res.send("Delete ok");
+   } else {
+      res.send("Could not delete article");
+   }
+});
+
+app.listen(4000); // start server on port 4000
+
+
+// Class tagged as a Model to be saved in the collection
+import express.database.Model;
+import org.dizitart.no2.objects.Id;
+
+@Model // required
+class Article {
+   @Id // required
+   private String id;
+   private String title;
+   private String content;
+
+   // getters, setters, etc..
+}
+```
+
+#### File upload
+Server
+```java
+// Create instance
+Express app = new Express();
+
+// Define endpoint to send formData with files
+app.post("/api/file-upload", (req, res) -> {
+   // Define list that will contain upload urls to send back to client
+   List<String> uploadNames = new ArrayList<>();
+   // extract the file from the FormData
+   List<FileItem> files = req.getFormData("files");
+
+   // loop files
+   for (FileItem file : files) {
+      // get filename and concat with upload folder name
+      String filename = "/uploads/" + file.getName();
+      // add upload filename to list
+      uploadNames.add(filename);
+
+      // open an ObjectOutputStream with the path to the uploads folder in target directory,
+      // in this case "src/www/uploads/", typically in the folder you serve as static
+      try (var os = new FileOutputStream(Paths.get("src/www" + filename).toString())) {
+         // get the required byte[] array to save to a file
+         // with file.get()
+         os.write(file.get());
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+   }
+
+   // return uploaded filenames to client
+   res.json(uploadNames);
+});
+```
+
+Client (JavaScript)
+```js
+async function uploadFiles(e) {
+    e.preventDefault();
+
+    // upload files with FormData
+    let files = document.querySelector('input[type=file]').files;
+
+    if(files.length) {
+        let formData = new FormData();
+        
+        // add files to formData
+        for(let file of files) {
+            formData.append('files', file, file.name);
+        }
+        
+        // upload selected files to server
+        let uploadResult = await fetch('/api/file-upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        // get the uploaded file urls from response
+        let uploadNames = await uploadResult.json();
+    }
+}
+```
+
+#### Send cookies 
+```java
+// Create instance
+Express app = new Express();
+
+// Define route
+app.get("/give-me-cookies", (req, res) -> {
+
+   // Set an cookie (you can call setCookie how often you want)
+   res.setCookie(new Cookie("my-cookie", "Hello World!"));
+   
+   // Send text
+   res.send("Your cookie has been set!");
+});
+
+app.listen(4000); // start server on port 4000
 ```
 
 #### File download
 ```java
+// Create instance
+Express app = new Express();
 
 // Your file
 Path downloadFile = Paths.get("my-big-file");
 
-// Create instance
-new Express() {{
+// Create get-route where the file can be downloaded
+app.get("/download-me", (req, res) -> res.sendAttachment(downloadFile));
 
-  // Create get-route where the file can be downloaded
-  get("/download-me", (req, res) -> res.sendAttachment(downloadFile));
-}};
+app.listen(4000); // start server on port 4000
 ```
-#### Send cookies 
-```java
-new Express() {{
 
-  // Define route
-  get("/give-me-cookies", (req, res) -> {
-  
-    // Set an cookie (you can call setCookie how often you want)
-    res.setCookie(new Cookie("my-cookie", "Hello World!"));
-    
-    // Send text
-    res.send("Your cookie has been set!");
-  });
-}};
-```
+</details>
 
 ## Router code splitting
 ### With Router
-But it's better to split your code, right? With the `ExpressRouter` you can create routes and add it later to the `Express` object:
+It's better to split your code, right? With the `ExpressRouter` you can create routes and add it later to the `Express` object.
+
+<details>
+    <summary>Show example</summary>
+
 ```java
 Express app = new Express() {{
 
-  // Define root greeting
-  get("/", (req, res) -> res.send("Hello World!"));
+  // Define root greeting                                         // url
+  get("/", (req, res) -> res.send("Hello World!"));               // '/'
 
   // Define home routes
-  use("/home", new ExpressRouter(){{
-    get("/about", (req, res) -> res.send("About page"));
-    get("/impressum", (req, res) -> res.send("Impressum page"));
-    get("/sponsors", (req, res) -> res.send("Sponsors page"));
+  use("/home", new ExpressRouter() {{
+    get("/about", (req, res) -> res.send("About page"));          // '/home/about'
+    get("/impressum", (req, res) -> res.send("Impressum page"));  // '/home/impressum'
+    get("/sponsors", (req, res) -> res.send("Sponsors page"));    // '/home/sponsors'
   }});
 
   // Define root routes
-  use("/", new ExpressRouter(){{
-    get("/login", (req, res) -> res.send("Login page"));
-    get("/register", (req, res) -> res.send("Register page"));
-    get("/contact", (req, res) -> res.send("Contact page"));
+  use("/", new ExpressRouter() {{
+    get("/login", (req, res) -> res.send("Login page"));          // '/login'
+    get("/register", (req, res) -> res.send("Register page"));    // '/register'
+    get("/contact", (req, res) -> res.send("Contact page"));      // '/contact'
   }});
 
   // Start server
@@ -637,12 +1288,18 @@ Express app = new Express() {{
 }};
 ```
 
-### DynExpress
-Express allows the attaching of request-handler to instance methods via the DynExpress annotation:
-```java
+</details>
 
+### DynExpress
+Express allows the attaching of request-handler to instance methods via the DynExpress annotation.
+
+<details>
+    <summary>Show example</summary>
+
+```java
 // Your main class
 import express.Express;
+
 public class Main {
     public static void main(String[] args) {
         Express app = new Express();
@@ -678,9 +1335,9 @@ public class Bindings {
         res.send("POST to index");
     }
 }
-
-
 ```
+
+</details>
 
 ### License
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/Aarkan1/java-express/blob/master/LICENSE) file for details.

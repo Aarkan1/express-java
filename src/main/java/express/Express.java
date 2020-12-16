@@ -16,7 +16,6 @@ import express.http.response.Response;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -292,6 +291,21 @@ public class Express implements Router {
     }
 
     /**
+     * Middleware handler for Server Side Events.
+     * Sets headers to enable SSE.
+     * Must use res.send(String, String) or res.send(String, Object)
+     * to prevent connection closing (default behaviour of res.send() )
+     *
+     * @param context The url for EventSource to connecto to
+     * @param request The (req, res) handler
+     * @return
+     */
+    public Express sse(String context, HttpRequestHandler request) {
+        handler.add(1, new FilterImpl("GET", context, request, true));
+        return this;
+    }
+
+    /**
      * Binds a or multiple objects with request-handler methods on this express instance.
      * With the use of the DynExpress Annotation handler can be declared with a annotation
      * on a compatible method which has as parameter a Request and Response object.
@@ -367,10 +381,10 @@ public class Express implements Router {
      */
     public void listen() {
         listen(null, 80);
-        System.out.println("\n\nServer started: \t\thttp://" + (hostname == null ? "localhost" : hostname) + ":80");
+        System.out.println("\nServer started: \t\thttp://" + (hostname == null ? "localhost" : hostname) + ":80");
         try {
-            System.out.println("Connect from network: \thttp://" + getYourIp() + ":80");
-        } catch (UnknownHostException e) { }
+            System.out.println("Connect from network: \thttp://" + getYourIp() + ":80\n");
+        } catch (UnknownHostException ignore) { }
 
         if(database == null) System.out.println("\n");
     }
@@ -383,10 +397,10 @@ public class Express implements Router {
      */
     public void listen(int port) {
         listen(null, port);
-        System.out.println("\n\nServer started: \t\thttp://" + (hostname == null ? "localhost" : hostname) + ":" + port);
+        System.out.println("\nServer started: \t\thttp://" + (hostname == null ? "localhost" : hostname) + ":" + port);
         try {
-            System.out.println("Connect from network: \thttp://" + getYourIp() + ":" + port);
-        } catch (UnknownHostException e) { }
+            System.out.println("Connect from network: \thttp://" + getYourIp() + ":" + port + "\n");
+        } catch (UnknownHostException ignore) { }
 
         if(database == null) System.out.println("\n");
     }

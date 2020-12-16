@@ -3,7 +3,9 @@ package express.filter;
 import express.http.HttpRequestHandler;
 import express.http.request.Request;
 import express.http.response.Response;
+import express.utils.Status;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
@@ -22,9 +24,24 @@ public class FilterImpl implements HttpRequestHandler {
     private final String context;
     private final boolean reqAll;
     private final boolean contextAll;
+    private final boolean setSSE;
 
     private String root;
     private String fullContext;
+
+    public FilterImpl(String requestMethod, String context, HttpRequestHandler httpRequest, boolean setSSE) {
+        this.req = requestMethod;
+        this.request = httpRequest;
+        this.context = normalizePath(context);
+
+        // Save some information's which don't need to be processed again
+        this.reqAll = requestMethod.equals("*");
+        this.contextAll = context.equals("*");
+        this.setSSE = setSSE;
+
+        this.root = "/";
+        this.fullContext = this.context;
+    }
 
     public FilterImpl(String requestMethod, String context, HttpRequestHandler httpRequest) {
         this.req = requestMethod;
@@ -34,6 +51,7 @@ public class FilterImpl implements HttpRequestHandler {
         // Save some information's which don't need to be processed again
         this.reqAll = requestMethod.equals("*");
         this.contextAll = context.equals("*");
+        this.setSSE = false;
 
         this.root = "/";
         this.fullContext = this.context;
@@ -93,6 +111,20 @@ public class FilterImpl implements HttpRequestHandler {
         // Check if the response is closed
         if (res.isClosed()) {
             return;
+        }
+
+        // set headers for SSE if enabled
+        if(setSSE) {
+            res.setStatus(Status._200);
+            res.setContentType("text/event-stream");
+            res.setHeader("Cache-Control", "no-cache");
+            res.setHeader("Connection", "keep-alive");
+
+            try {
+                // Set header and send response
+                res.getRaw().getResponseHeaders().set("Content-Type", res.getContentType());
+                res.getRaw().sendResponseHeaders(res.getStatus(), res.getContentLength());
+            } catch (IOException ignore) { }
         }
 
         // Handle request
