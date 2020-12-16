@@ -197,14 +197,16 @@ app.get("/showcookie", (req, res) -> {
 </details>
 
 ## Server Side Events
-With `app.sse()`
+With `app.sse()` you can register a Server Side Event handler. This will set required headers to enable SSE. 
 
 <details>
     <summary>Show documentation</summary>
 
 `res.send(EVENT, DATA)` takes the event as a String, and data as a String or an Object. The object will be converted to json before sending to clients. 
-If you want use SSE (Server Side Events) you'll have to create an endpoint for the client to connect to, for example in JavaScript via `new EventSource('/sse-endpoint')`. 
+If you want use SSE (Server Side Events) you'll have to create an endpoint for the client to connect to, and in JavaScript connect with `new EventSource('/sse-endpoint')`. 
 Closing the SSE with `res.reconnectSSE()` will force the client to reconnect. If `res.reconnectSSE()` doesn't get called the SSE will stay connected and `res.send(EVENT, DATA)` can be used multiple times before closing.
+
+**Note: you must use `res.send(String, String)` or `res.send(String, Object)` when sending messages via event stream! Other `res.send()`-methods will close the connection, and force the client to reconnect after every sent message.** 
 
 Example Java:
 ```java
